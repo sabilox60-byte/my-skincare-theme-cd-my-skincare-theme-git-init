@@ -1,0 +1,256 @@
+{%- comment -%}
+  collection-header.liquid
+  ─────────────────────────
+  Top of collection page: breadcrumb, title, product count,
+  optional description, and sort-by selector.
+  Sort redirects via URL param — no JS framework needed.
+{%- endcomment -%}
+
+<section class="section-collection-header"
+         data-section-id="{{ section.id }}">
+  <div class="container">
+
+    {%- comment -%} ── Breadcrumb ── {%- endcomment -%}
+    <nav class="breadcrumb" aria-label="Percorso di navigazione">
+      <ol class="breadcrumb__list">
+        <li><a href="/">Home</a></li>
+        <li class="breadcrumb__sep" aria-hidden="true">›</li>
+        <li aria-current="page">{{ collection.title }}</li>
+      </ol>
+    </nav>
+
+    {%- comment -%} ── Title + count ── {%- endcomment -%}
+    <div class="collection-header__top">
+      <h1 class="collection-header__title">{{ collection.title }}</h1>
+      <p class="collection-header__count">
+        {{ collection.products_count }}
+        {{ collection.products_count | pluralize: 'prodotto', 'prodotti' }}
+      </p>
+    </div>
+
+    {%- comment -%} ── Optional description ── {%- endcomment -%}
+    {%- if section.settings.show_description and collection.description != blank -%}
+      <div class="collection-header__desc">
+        {{ collection.description }}
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} ── Filter + Sort bar ── {%- endcomment -%}
+    <div class="collection-controls">
+
+      <div class="sort-by">
+        <label for="sort-{{ section.id }}" class="sort-by__label">Ordina per:</label>
+        <div class="sort-by__select-wrapper">
+          <select id="sort-{{ section.id }}"
+                  class="sort-by__select"
+                  name="sort_by"
+                  aria-label="Ordina per">
+            <option value="manual"
+              {%- if collection.sort_by == 'manual' %} selected{%- endif -%}>
+              In evidenza
+            </option>
+            <option value="price-ascending"
+              {%- if collection.sort_by == 'price-ascending' %} selected{%- endif -%}>
+              Prezzo: dal più basso
+            </option>
+            <option value="price-descending"
+              {%- if collection.sort_by == 'price-descending' %} selected{%- endif -%}>
+              Prezzo: dal più alto
+            </option>
+            <option value="title-ascending"
+              {%- if collection.sort_by == 'title-ascending' %} selected{%- endif -%}>
+              Nome: A–Z
+            </option>
+            <option value="title-descending"
+              {%- if collection.sort_by == 'title-descending' %} selected{%- endif -%}>
+              Nome: Z–A
+            </option>
+            <option value="best-selling"
+              {%- if collection.sort_by == 'best-selling' %} selected{%- endif -%}>
+              Più venduti
+            </option>
+            <option value="created-descending"
+              {%- if collection.sort_by == 'created-descending' %} selected{%- endif -%}>
+              Novità
+            </option>
+          </select>
+          {%- render 'icon-sprite', icon: 'icon-chevron-down' -%}
+        </div>
+      </div>
+
+      <div class="collection-controls__right">
+        <span class="collection-controls__showing">
+          Mostrando {{ collection.products_count }}
+          {{ collection.products_count | pluralize: 'prodotto', 'prodotti' }}
+        </span>
+      </div>
+
+    </div>{%- comment -%} /.collection-controls {%- endcomment -%}
+
+  </div>
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-collection-header {
+    padding-top: var(--space-lg);
+    padding-bottom: var(--space-md);
+  }
+
+  /* ─── Breadcrumb ─── */
+  .breadcrumb__list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .breadcrumb a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .breadcrumb a:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  .breadcrumb__sep {
+    color: var(--color-border-dark);
+    user-select: none;
+  }
+
+  /* ─── Title + count ─── */
+  .collection-header__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+
+  .collection-header__title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    line-height: var(--line-height-heading);
+  }
+
+  .collection-header__count {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  /* ─── Description ─── */
+  .collection-header__desc {
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+    max-width: 640px;
+    margin-bottom: var(--space-lg);
+  }
+
+  /* ─── Controls bar ─── */
+  .collection-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    padding: 16px 0;
+    border-top: var(--border);
+    border-bottom: var(--border);
+  }
+
+  /* ─── Sort by ─── */
+  .sort-by {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .sort-by__label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .sort-by__select-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .sort-by__select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 8px 36px 8px 12px;
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg);
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: border-color var(--transition-fast);
+  }
+
+  .sort-by__select:hover,
+  .sort-by__select:focus {
+    border-color: var(--color-text);
+    outline: none;
+  }
+
+  .sort-by__select-wrapper svg {
+    position: absolute;
+    right: 10px;
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-muted);
+    pointer-events: none;
+  }
+
+  /* ─── Right side ─── */
+  .collection-controls__showing {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+</style>
+
+<script>
+  (function () {
+    var select = document.querySelector('#sort-{{ section.id }}');
+    if (!select) return;
+    select.addEventListener('change', function () {
+      var url = new URL(window.location.href);
+      url.searchParams.set('sort_by', this.value);
+      window.location.href = url.toString();
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Collection Header",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show collection description",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection Header"
+    }
+  ]
+}
+{% endschema %}

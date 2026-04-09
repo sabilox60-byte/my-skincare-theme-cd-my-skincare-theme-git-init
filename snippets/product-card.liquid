@@ -1,0 +1,247 @@
+{%- comment -%}
+  product-card.liquid
+  ────────────────────
+  Reusable product card. Used in: routine-tabs, collection-grid,
+  and anywhere JS renders products via Theme.Tabs.renderProducts().
+
+  Parameters:
+    product  — Shopify product object (required)
+
+  Dependencies rendered:
+    snippets/badge.liquid        — built in Session 4A
+    snippets/rating-stars.liquid — built in Session 4A
+{%- endcomment -%}
+
+{%- assign card_product = product -%}
+
+<div class="product-card" data-product-id="{{ card_product.id }}">
+
+  {%- comment -%} ── Media area (image swap on hover) ── {%- endcomment -%}
+  <a class="card-media"
+     href="{{ card_product.url }}"
+     aria-label="{{ card_product.title | escape }}">
+
+    {%- if card_product.featured_image != blank -%}
+      <img class="img-primary"
+           src="{{ card_product.featured_image | image_url: width: 600 }}"
+           srcset="{{ card_product.featured_image | image_url: width: 400 }} 400w,
+                   {{ card_product.featured_image | image_url: width: 600 }} 600w,
+                   {{ card_product.featured_image | image_url: width: 900 }} 900w"
+           sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+           alt="{{ card_product.featured_image.alt | escape }}"
+           loading="lazy"
+           width="600"
+           height="600">
+    {%- else -%}
+      <div class="card-media__placeholder" aria-hidden="true"></div>
+    {%- endif -%}
+
+    {%- if card_product.images[1] != blank -%}
+      <img class="img-secondary"
+           src="{{ card_product.images[1] | image_url: width: 600 }}"
+           alt=""
+           loading="lazy"
+           width="600"
+           height="600"
+           aria-hidden="true">
+    {%- endif -%}
+
+    {%- comment -%} Badge snippet — built Session 4A {%- endcomment -%}
+    {%- render 'badge', product: card_product -%}
+
+  </a>
+
+  {%- comment -%} ── Info area ── {%- endcomment -%}
+  <div class="card-info">
+
+    {%- comment -%} Rating stars snippet — built Session 4A {%- endcomment -%}
+    {%- render 'rating-stars', product: card_product -%}
+
+    <h3 class="card-title">
+      <a href="{{ card_product.url }}">{{ card_product.title | escape }}</a>
+    </h3>
+
+    <div class="card-pricing">
+      {%- if card_product.compare_at_price > card_product.price -%}
+        <span class="card-price card-price--sale">
+          {{ card_product.price | money }}
+        </span>
+        <s class="card-price card-price--compare">
+          {{ card_product.compare_at_price | money }}
+        </s>
+      {%- else -%}
+        <span class="card-price">{{ card_product.price | money }}</span>
+      {%- endif -%}
+    </div>
+
+    <button class="btn-atc"
+            type="button"
+            data-variant-id="{{ card_product.variants.first.id }}"
+            data-product-title="{{ card_product.title | escape }}"
+            aria-label="Aggiungi {{ card_product.title | escape }} al carrello"
+            {%- if card_product.variants.first.available == false -%}
+              disabled
+            {%- endif -%}>
+      {%- if card_product.variants.first.available -%}
+        Aggiungi al carrello
+      {%- else -%}
+        Esaurito
+      {%- endif -%}
+    </button>
+
+  </div>
+</div>
+
+<style>
+  /* ─── Card wrapper ─── */
+  .product-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── Media area ─── */
+  .product-card .card-media {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    aspect-ratio: 1 / 1;
+    background-color: var(--color-cream);
+    text-decoration: none;
+  }
+
+  .product-card .card-media:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+
+  /* Primary image */
+  .product-card .img-primary {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: opacity var(--transition-base);
+  }
+
+  /* Secondary image — hover reveal */
+  .product-card .img-secondary {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .product-card:hover .img-secondary {
+    opacity: 1;
+  }
+
+  /* Placeholder when no image */
+  .card-media__placeholder {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-cream);
+  }
+
+  /* ─── Info area ─── */
+  .product-card .card-info {
+    padding-top: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    flex: 1;
+  }
+
+  /* Title */
+  .card-title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.3;
+  }
+
+  .card-title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .card-title a:hover {
+    color: var(--color-text-muted);
+  }
+
+  /* Pricing */
+  .card-pricing {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+  }
+
+  .card-price {
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+  }
+
+  .card-price--sale {
+    color: var(--color-error);
+  }
+
+  .card-price--compare {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-hint);
+  }
+
+  /* ATC button — slides up on card hover */
+  .product-card .btn-atc {
+    margin-top: var(--space-sm);
+    width: 100%;
+    padding: 10px var(--space-md);
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      background-color var(--transition-fast);
+  }
+
+  .product-card:hover .btn-atc {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .product-card .btn-atc:hover {
+    background-color: var(--color-text-muted);
+  }
+
+  .product-card .btn-atc:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-color: var(--color-text-muted);
+    transform: translateY(0);
+  }
+
+  .product-card .btn-atc.is-loading {
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  /* ─── Always-visible ATC on touch devices (no hover) ─── */
+  @media (hover: none) {
+    .product-card .btn-atc {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

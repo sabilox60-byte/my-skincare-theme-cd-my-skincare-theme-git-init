@@ -1,0 +1,222 @@
+{%- comment -%}
+  quiz-banner.liquid
+  ───────────────────
+  Full-width CTA banner promoting the skin quiz.
+  Background: solid color or image overlay.
+  Layout: centred text block with eyebrow, heading, body, CTA.
+{%- endcomment -%}
+
+{%- assign has_image = false -%}
+{%- if section.settings.bg_image != blank -%}
+  {%- assign has_image = true -%}
+{%- endif -%}
+
+<section class="section-quiz-banner{% if has_image %} section-quiz-banner--has-image{% endif %}"
+         data-section-id="{{ section.id }}"
+         {%- if section.settings.bg_color != blank -%}
+           style="--quiz-bg: {{ section.settings.bg_color }};"
+         {%- endif -%}>
+
+  {%- if has_image -%}
+    <div class="quiz-banner__bg" aria-hidden="true">
+      <img src="{{ section.settings.bg_image | image_url: width: 1920 }}"
+           srcset="{{ section.settings.bg_image | image_url: width: 800 }} 800w,
+                   {{ section.settings.bg_image | image_url: width: 1200 }} 1200w,
+                   {{ section.settings.bg_image | image_url: width: 1920 }} 1920w"
+           sizes="100vw"
+           alt=""
+           loading="lazy"
+           width="1920"
+           height="600">
+    </div>
+    <div class="quiz-banner__overlay" aria-hidden="true"></div>
+  {%- endif -%}
+
+  <div class="container">
+    <div class="quiz-banner__inner">
+
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="quiz-banner__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <h2 class="quiz-banner__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.body_text != blank -%}
+        <p class="quiz-banner__body">{{ section.settings.body_text | escape }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.cta_label != blank and section.settings.cta_link != blank -%}
+        <a href="{{ section.settings.cta_link }}"
+           class="btn {% if has_image %}btn-outline-white{% else %}btn-primary{% endif %} quiz-banner__cta">
+          {{ section.settings.cta_label | escape }}
+        </a>
+      {%- endif -%}
+
+    </div>
+  </div>
+
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-quiz-banner {
+    position: relative;
+    background-color: var(--quiz-bg, var(--color-cream));
+    padding-block: var(--space-3xl);
+    overflow: hidden;
+    border-top: var(--border);
+    border-bottom: var(--border);
+  }
+
+  /* ─── Background image ─── */
+  .quiz-banner__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .quiz-banner__bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  /* ─── Overlay dims image so text is legible ─── */
+  .quiz-banner__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: var(--overlay-mid);
+  }
+
+  /* ─── Inner: centred content block ─── */
+  .quiz-banner__inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-md);
+    max-width: 640px;
+    margin-inline: auto;
+  }
+
+  /* ─── Eyebrow ─── */
+  .quiz-banner__eyebrow {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .section-quiz-banner--has-image .quiz-banner__eyebrow {
+    color: var(--color-bg);
+    opacity: 0.85;
+  }
+
+  .section-quiz-banner:not(.section-quiz-banner--has-image) .quiz-banner__eyebrow {
+    color: var(--color-text-muted);
+  }
+
+  /* ─── Heading ─── */
+  .quiz-banner__heading {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-heading);
+  }
+
+  .section-quiz-banner--has-image .quiz-banner__heading {
+    color: var(--color-bg);
+  }
+
+  .section-quiz-banner:not(.section-quiz-banner--has-image) .quiz-banner__heading {
+    color: var(--color-text);
+  }
+
+  /* ─── Body ─── */
+  .quiz-banner__body {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+  }
+
+  .section-quiz-banner--has-image .quiz-banner__body {
+    color: var(--color-bg);
+    opacity: 0.9;
+  }
+
+  .section-quiz-banner:not(.section-quiz-banner--has-image) .quiz-banner__body {
+    color: var(--color-text-muted);
+  }
+
+  /* ─── CTA ─── */
+  .quiz-banner__cta {
+    margin-top: var(--space-sm);
+  }
+
+  /* ─── Desktop: larger vertical padding ─── */
+  @media (min-width: 768px) {
+    .section-quiz-banner {
+      padding-block: calc(var(--space-3xl) * 1.25);
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Quiz Banner",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "Background image",
+      "info": "If set, text will render over the image with a dark overlay."
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#F5F2ED",
+      "info": "Used when no background image is set."
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "Scopri la tua pelle"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Fai il test della pelle in 2 minuti"
+    },
+    {
+      "type": "textarea",
+      "id": "body_text",
+      "label": "Body text",
+      "default": "Rispondi ad alcune domande e ricevi una routine skincare personalizzata, formulata su misura per le tue esigenze."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA button label",
+      "default": "Inizia il test"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA button link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Quiz Banner"
+    }
+  ]
+}
+{% endschema %}

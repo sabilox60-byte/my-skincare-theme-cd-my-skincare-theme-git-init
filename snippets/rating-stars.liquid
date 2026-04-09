@@ -1,0 +1,66 @@
+{%- comment -%}
+  rating-stars.liquid
+  ────────────────────
+  Renders star rating from product metafields.
+  Parameters:
+    product — Shopify product object (required)
+  Metafields required:
+    reviews.rating.value       — numeric rating (e.g. 4.3)
+    reviews.rating_count.value — integer count (e.g. 128)
+{%- endcomment -%}
+
+{%- assign rating = product.metafields.reviews.rating.value -%}
+{%- assign count  = product.metafields.reviews.rating_count.value -%}
+
+{%- if rating != blank and count != blank -%}
+  {%- assign full_stars  = rating | floor -%}
+  {%- assign remainder   = rating | minus: full_stars -%}
+  {%- assign empty_stars = 5 | minus: full_stars -%}
+
+  <div class="rating-stars"
+       aria-label="{{ rating }} su 5 stelle, {{ count }} recensioni">
+
+    {%- for i in (1..full_stars) -%}
+      {%- render 'icon-sprite', icon: 'icon-star' -%}
+    {%- endfor -%}
+
+    {%- if remainder >= 0.25 and remainder < 0.75 -%}
+      {%- render 'icon-sprite', icon: 'icon-star-half' -%}
+      {%- assign empty_stars = empty_stars | minus: 1 -%}
+    {%- elsif remainder >= 0.75 -%}
+      {%- render 'icon-sprite', icon: 'icon-star' -%}
+      {%- assign empty_stars = empty_stars | minus: 1 -%}
+    {%- endif -%}
+
+    {%- if empty_stars > 0 -%}
+      {%- for i in (1..empty_stars) -%}
+        {%- render 'icon-sprite', icon: 'icon-star-empty' -%}
+      {%- endfor -%}
+    {%- endif -%}
+
+    <span class="rating-count">({{ count }})</span>
+
+  </div>
+{%- endif -%}
+
+<style>
+  .rating-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .rating-stars svg {
+    width: 14px;
+    height: 14px;
+    /* Gold star color — only hex in this file */
+    color: #F5A623;
+    flex-shrink: 0;
+  }
+
+  .rating-count {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-left: 4px;
+  }
+</style>

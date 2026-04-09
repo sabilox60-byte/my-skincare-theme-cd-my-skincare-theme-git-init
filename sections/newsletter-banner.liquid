@@ -1,0 +1,273 @@
+{%- comment -%}
+  newsletter-banner.liquid
+  ─────────────────────────
+  Email capture section using Shopify native contact form.
+  Layout: flex row on desktop (heading side + form side), stacked on mobile.
+  Form posts to /contact with type=newsletter.
+{%- endcomment -%}
+
+{%- form 'customer', id: 'newsletter-form', class: 'newsletter-form' -%}
+  {%- assign form_posted = false -%}
+  {%- if form.posted_successfully? -%}
+    {%- assign form_posted = true -%}
+  {%- endif -%}
+{%- endform -%}
+
+<section class="section-newsletter-banner"
+         data-section-id="{{ section.id }}">
+
+  <div class="container">
+    <div class="newsletter-banner__layout">
+
+      {%- comment -%} ── Left: heading block ── {%- endcomment -%}
+      <div class="newsletter-banner__copy">
+
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="newsletter-banner__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.heading != blank -%}
+          <h2 class="newsletter-banner__heading">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.subheading != blank -%}
+          <p class="newsletter-banner__subheading">{{ section.settings.subheading | escape }}</p>
+        {%- endif -%}
+
+      </div>
+
+      {%- comment -%} ── Right: form block ── {%- endcomment -%}
+      <div class="newsletter-banner__form-wrap">
+
+        {%- if form_posted -%}
+          <div class="newsletter-banner__success" role="alert">
+            <p>{{ section.settings.success_message | default: 'Grazie per esserti iscritto!' | escape }}</p>
+          </div>
+        {%- else -%}
+
+          {%- form 'customer', id: 'newsletter-form-{{ section.id }}', class: 'newsletter-form' -%}
+            <input type="hidden" name="contact[tags]" value="newsletter">
+
+            <div class="newsletter-form__row">
+              <label for="newsletter-email-{{ section.id }}" class="visually-hidden">
+                Indirizzo email
+              </label>
+              <input type="email"
+                     id="newsletter-email-{{ section.id }}"
+                     name="contact[email]"
+                     class="newsletter-form__input"
+                     placeholder="{{ section.settings.input_placeholder | default: 'La tua email' | escape }}"
+                     required
+                     autocomplete="email"
+                     aria-required="true">
+              <button type="submit" class="btn btn-primary newsletter-form__submit">
+                {{ section.settings.submit_label | default: 'Iscriviti' | escape }}
+              </button>
+            </div>
+
+            {%- if form.errors -%}
+              <p class="newsletter-form__error" role="alert">
+                {{ form.errors.translated_fields.email | capitalize }}
+                {{ form.errors.messages.email }}
+              </p>
+            {%- endif -%}
+
+          {%- endform -%}
+
+          {%- if section.settings.privacy_note != blank -%}
+            <p class="newsletter-form__privacy">{{ section.settings.privacy_note | escape }}</p>
+          {%- endif -%}
+
+        {%- endif -%}
+
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-newsletter-banner {
+    background-color: var(--color-cream);
+    border-top: var(--border);
+    padding-block: var(--space-2xl);
+  }
+
+  /* ─── Layout: stacked → side-by-side ─── */
+  .newsletter-banner__layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  /* ─── Copy block ─── */
+  .newsletter-banner__eyebrow {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+  }
+
+  .newsletter-banner__heading {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    line-height: var(--line-height-heading);
+    margin-bottom: var(--space-sm);
+  }
+
+  .newsletter-banner__subheading {
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+  }
+
+  /* ─── Form wrapper ─── */
+  .newsletter-banner__form-wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-sm);
+  }
+
+  /* ─── Input row ─── */
+  .newsletter-form__row {
+    display: flex;
+    gap: 0;
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background-color: var(--color-bg);
+  }
+
+  .newsletter-form__input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px var(--space-md);
+    border: none;
+    outline: none;
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background: transparent;
+  }
+
+  .newsletter-form__input::placeholder {
+    color: var(--color-text-hint);
+  }
+
+  .newsletter-form__input:focus {
+    outline: none;
+  }
+
+  .newsletter-form__row:focus-within {
+    border-color: var(--color-text);
+  }
+
+  .newsletter-form__submit {
+    border-radius: 0;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* ─── Error / privacy / success ─── */
+  .newsletter-form__error {
+    font-size: var(--font-size-sm);
+    color: var(--color-error);
+  }
+
+  .newsletter-form__privacy {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-hint);
+    line-height: var(--line-height-base);
+  }
+
+  .newsletter-banner__success {
+    padding: var(--space-lg);
+    background-color: var(--color-bg);
+    border: var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .newsletter-banner__success p {
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+  }
+
+  /* ─── Desktop: flex row ─── */
+  @media (min-width: 768px) {
+    .newsletter-banner__layout {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-3xl);
+    }
+
+    .newsletter-banner__copy {
+      flex: 1;
+      max-width: 480px;
+    }
+
+    .newsletter-banner__form-wrap {
+      flex: 1;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Newsletter Banner",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "Resta aggiornato"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Iscriviti alla nostra newsletter"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Consigli skincare, novità di prodotto e offerte esclusive riservate agli iscritti."
+    },
+    {
+      "type": "text",
+      "id": "input_placeholder",
+      "label": "Input placeholder",
+      "default": "La tua email"
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "Submit button label",
+      "default": "Iscriviti"
+    },
+    {
+      "type": "text",
+      "id": "success_message",
+      "label": "Success message",
+      "default": "Grazie per esserti iscritto! Riceverai presto le nostre novità."
+    },
+    {
+      "type": "text",
+      "id": "privacy_note",
+      "label": "Privacy note",
+      "default": "Iscrivendoti accetti la nostra Privacy Policy. Puoi cancellarti in qualsiasi momento."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Newsletter Banner"
+    }
+  ]
+}
+{% endschema %}

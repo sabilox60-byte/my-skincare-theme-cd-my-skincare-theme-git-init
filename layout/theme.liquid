@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{{ page_title }} — {{ shop.name }}</title>
+  <meta name="description" content="{{ page_description | escape }}">
+
+  {%- comment -%} Canonical + OG meta {%- endcomment -%}
+  <link rel="canonical" href="{{ canonical_url }}">
+  <meta property="og:site_name"   content="{{ shop.name | escape }}">
+  <meta property="og:url"         content="{{ canonical_url }}">
+  <meta property="og:title"       content="{{ page_title | escape }}">
+  <meta property="og:type"        content="website">
+  <meta property="og:description" content="{{ page_description | escape }}">
+
+  {%- if product.featured_image -%}
+    <meta property="og:image"
+          content="{{ product.featured_image | image_url: width: 1200 }}">
+    <meta property="og:image:width"  content="1200">
+    <meta property="og:image:height" content="628">
+  {%- elsif page_image -%}
+    <meta property="og:image" content="{{ page_image | image_url: width: 1200 }}">
+  {%- endif -%}
+
+  {%- comment -%} Favicon {%- endcomment -%}
+  {%- if settings.favicon != blank -%}
+    <link rel="icon" type="image/png"
+          href="{{ settings.favicon | image_url: width: 32 }}">
+  {%- endif -%}
+
+  {%- comment -%} Preconnect + Inter font {%- endcomment -%}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap"
+        rel="stylesheet">
+
+  {%- comment -%} Swiper CSS {%- endcomment -%}
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+  {%- comment -%} Theme CSS {%- endcomment -%}
+  {{ 'theme.css' | asset_url | stylesheet_tag }}
+
+  {%- comment -%}
+    Critical inline styles — prevent FOUC (flash of unstyled content).
+    Body is hidden until JS adds .loaded. Fallback via noscript.
+  {%- endcomment -%}
+  <style>
+    body { visibility: hidden; }
+    body.loaded { visibility: visible; }
+  </style>
+  <noscript>
+    <style>body { visibility: visible; }</style>
+  </noscript>
+
+  {%- comment -%} Preload hero image on homepage to avoid LCP penalty {%- endcomment -%}
+  {%- if template == 'index' -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'image_slide' or block.type == 'video_slide' -%}
+        {%- if block.settings.image != blank -%}
+          <link rel="preload" as="image"
+            href="{{ block.settings.image | image_url: width: 1200 }}"
+            imagesrcset="{{ block.settings.image | image_url: width: 600 }} 600w, {{ block.settings.image | image_url: width: 1200 }} 1200w, {{ block.settings.image | image_url: width: 1800 }} 1800w"
+            imagesizes="100vw">
+        {%- endif -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+
+  {%- comment -%} Custom CSS from Theme Editor {%- endcomment -%}
+  {%- if settings.custom_css != blank -%}
+    <style>{{ settings.custom_css }}</style>
+  {%- endif -%}
+
+  {{ content_for_header }}
+</head>
+
+<body class="{{ template.name }}-template{% if template.suffix %} {{ template.name }}-{{ template.suffix }}-template{% endif %}"
+      data-template="{{ template.name }}">
+
+  {%- comment -%} Skip to content — keyboard accessibility {%- endcomment -%}
+  <a href="#main-content" class="skip-to-content">
+    Vai al contenuto principale
+  </a>
+
+  {%- comment -%}
+    Cart overlay — rendered before drawers so z-index stacking is correct.
+    Clicking it closes any open drawer (handled by Theme.Drawer.init).
+  {%- endcomment -%}
+  <div class="cart-drawer-overlay"
+       data-cart-overlay
+       aria-hidden="true"
+       role="presentation">
+  </div>
+
+  {%- comment -%} Drawers — rendered before header, z-index layered above everything {%- endcomment -%}
+  {%- render 'cart-drawer' -%}
+  {%- render 'search-drawer' -%}
+
+  {%- comment -%} Global sections {%- endcomment -%}
+  {%- section 'announcement-bar' -%}
+  {%- section 'header' -%}
+
+  {%- comment -%} Mobile navigation menu (toggled by hamburger in header) {%- endcomment -%}
+  <nav id="mobile-menu"
+       class="mobile-menu"
+       aria-label="{{ 'general.accessibility.mobile_menu' | t: default: 'Menu di navigazione' }}"
+       aria-hidden="true">
+
+    <div class="mobile-menu__header">
+      <a href="{{ routes.root_url }}" class="header__logo-text">
+        {%- if settings.logo != blank -%}
+          <img src="{{ settings.logo | image_url: width: 140 }}"
+               alt="{{ shop.name | escape }}"
+               width="{{ settings.logo_width_mobile | default: 100 }}"
+               height="auto"
+               loading="eager">
+        {%- else -%}
+          {{ shop.name | escape }}
+        {%- endif -%}
+      </a>
+      <button class="mobile-menu__close"
+              data-mobile-close
+              aria-label="Chiudi menu">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"
+             fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 5L5 15M5 5l10 10"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <ul class="mobile-menu__nav">
+      {%- for link in linklists[settings.main_menu].links -%}
+        <li class="mobile-menu__nav-item">
+          {%- if link.links != blank -%}
+            <button class="mobile-menu__nav-link"
+                    data-mobile-toggle
+                    aria-expanded="false"
+                    aria-controls="mobile-sub-{{ forloop.index }}">
+              {{ link.title | escape }}
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14"
+                   fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 5l4 4 4-4"
+                      stroke="currentColor" stroke-width="1.5"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <ul id="mobile-sub-{{ forloop.index }}" class="mobile-menu__sub">
+              {%- for child in link.links -%}
+                <li>
+                  <a class="mobile-menu__sub-link" href="{{ child.url }}">
+                    {{ child.title | escape }}
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          {%- else -%}
+            <a class="mobile-menu__nav-link" href="{{ link.url }}">
+              {{ link.title | escape }}
+            </a>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </nav>
+
+  {%- comment -%} ────────────────────── MAIN CONTENT ────────────────────── {%- endcomment -%}
+  <main id="main-content" role="main" tabindex="-1">
+    {{ content_for_layout }}
+  </main>
+  {%- comment -%} ──────────────────────────────────────────────────────────── {%- endcomment -%}
+
+  {%- section 'footer' -%}
+
+  {%- comment -%} Toast notification container (injected by Theme.Toast) {%- endcomment -%}
+
+  {%- comment -%} Swiper JS — before theme.js so sliders can init on DOMContentLoaded {%- endcomment -%}
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
+
+  {%- comment -%} Theme JS {%- endcomment -%}
+  <script src="{{ 'theme.js' | asset_url }}" defer></script>
+
+  {%- comment -%} Custom JS from Theme Editor {%- endcomment -%}
+  {%- if settings.custom_js != blank -%}
+    <script defer>{{ settings.custom_js }}</script>
+  {%- endif -%}
+
+  {%- comment -%}
+    Reveal body once fonts + layout are ready.
+    Must run synchronously (no defer) so there is no visible flash.
+  {%- endcomment -%}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.body.classList.add('loaded');
+    });
+  </script>
+
+</body>
+</html>

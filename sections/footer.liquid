@@ -1,0 +1,556 @@
+{%- comment -%}
+  footer.liquid
+  ──────────────
+  Site footer. Structure:
+    1. Optional social strip (above main grid)
+    2. 4-column main grid (Shop / Brand / Customer Care / Contact)
+    3. Bottom bar (copyright + legal links + payment icons)
+
+  Note: newsletter-banner is a separate section rendered in the page template;
+  it is NOT included here to avoid duplication.
+{%- endcomment -%}
+
+<footer class="site-footer section-footer"
+        data-section-id="{{ section.id }}">
+
+  {%- comment -%} ── Social strip ── {%- endcomment -%}
+  {%- if section.settings.show_social_strip -%}
+    <div class="footer-social-strip">
+      <div class="container footer-social-strip__inner">
+
+        {%- if section.settings.social_strip_text != blank -%}
+          <p class="footer-social-strip__text">{{ section.settings.social_strip_text | escape }}</p>
+        {%- endif -%}
+
+        <div class="footer-social__icons">
+          {%- if settings.social_instagram != blank -%}
+            <a href="{{ settings.social_instagram }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="Instagram">
+              {%- render 'icon-sprite', icon: 'icon-instagram' -%}
+            </a>
+          {%- endif -%}
+          {%- if settings.social_facebook != blank -%}
+            <a href="{{ settings.social_facebook }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="Facebook">
+              {%- render 'icon-sprite', icon: 'icon-facebook' -%}
+            </a>
+          {%- endif -%}
+          {%- if settings.social_youtube != blank -%}
+            <a href="{{ settings.social_youtube }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="YouTube">
+              {%- render 'icon-sprite', icon: 'icon-youtube' -%}
+            </a>
+          {%- endif -%}
+          {%- if settings.social_tiktok != blank -%}
+            <a href="{{ settings.social_tiktok }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="TikTok">
+              {%- render 'icon-sprite', icon: 'icon-tiktok' -%}
+            </a>
+          {%- endif -%}
+        </div>
+
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} ── Main footer grid ── {%- endcomment -%}
+  <div class="footer-main">
+    <div class="container footer-main__grid">
+
+      {%- comment -%} Column 1: Shop links {%- endcomment -%}
+      <div class="footer-col">
+        <h3 class="footer-col__title">
+          {{ section.settings.col1_title | default: 'Shop' | escape }}
+        </h3>
+        {%- if section.settings.col1_menu != blank -%}
+          {%- assign col1_nav = linklists[section.settings.col1_menu] -%}
+          {%- if col1_nav.links.size > 0 -%}
+            <ul class="footer-col__list">
+              {%- for link in col1_nav.links -%}
+                <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Column 2: Brand links {%- endcomment -%}
+      <div class="footer-col">
+        <h3 class="footer-col__title">
+          {{ section.settings.col2_title | default: 'Skin First' | escape }}
+        </h3>
+        {%- if section.settings.col2_menu != blank -%}
+          {%- assign col2_nav = linklists[section.settings.col2_menu] -%}
+          {%- if col2_nav.links.size > 0 -%}
+            <ul class="footer-col__list">
+              {%- for link in col2_nav.links -%}
+                <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Column 3: Customer Care {%- endcomment -%}
+      <div class="footer-col">
+        <h3 class="footer-col__title">
+          {{ section.settings.col3_title | default: 'Customer Care' | escape }}
+        </h3>
+        {%- if section.settings.col3_menu != blank -%}
+          {%- assign col3_nav = linklists[section.settings.col3_menu] -%}
+          {%- if col3_nav.links.size > 0 -%}
+            <ul class="footer-col__list">
+              {%- for link in col3_nav.links -%}
+                <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Column 4: Contact {%- endcomment -%}
+      <div class="footer-col footer-col--contact">
+        <h3 class="footer-col__title">
+          {{ section.settings.col4_title | default: 'Contatti' | escape }}
+        </h3>
+
+        {%- if settings.social_whatsapp != blank -%}
+          {%- assign wa_number = settings.social_whatsapp | remove: '+' | remove: ' ' | remove: '-' -%}
+          <a href="https://api.whatsapp.com/send?phone={{ wa_number }}&text="
+             class="footer-contact-link"
+             target="_blank"
+             rel="noopener noreferrer">
+            {%- render 'icon-sprite', icon: 'icon-whatsapp' -%}
+            <span>Contattaci su WhatsApp</span>
+          </a>
+        {%- endif -%}
+
+        {%- if section.settings.contact_email != blank -%}
+          <a href="/pages/contatti" class="footer-contact-link">
+            <span>Invia una e-mail</span>
+          </a>
+        {%- endif -%}
+
+      </div>
+
+    </div>{%- comment -%} /.footer-main__grid {%- endcomment -%}
+  </div>{%- comment -%} /.footer-main {%- endcomment -%}
+
+  {%- comment -%} ── Bottom bar ── {%- endcomment -%}
+  <div class="footer-bottom">
+    <div class="container footer-bottom__inner">
+
+      <p class="footer-bottom__copy">
+        &copy; {{ 'now' | date: '%Y' }} &mdash;
+        {{ section.settings.company_info | default: shop.name | escape }}
+      </p>
+
+      <ul class="footer-bottom__legal">
+        {%- if shop.privacy_policy.url != blank -%}
+          <li><a href="{{ shop.privacy_policy.url }}">Privacy Policy</a></li>
+        {%- endif -%}
+        {%- if shop.terms_of_service.url != blank -%}
+          <li><a href="{{ shop.terms_of_service.url }}">Termini e Condizioni</a></li>
+        {%- endif -%}
+        {%- if shop.refund_policy.url != blank -%}
+          <li><a href="{{ shop.refund_policy.url }}">Resi e Rimborsi</a></li>
+        {%- endif -%}
+        {%- if shop.shipping_policy.url != blank -%}
+          <li><a href="{{ shop.shipping_policy.url }}">Spedizioni</a></li>
+        {%- endif -%}
+      </ul>
+
+      {%- if section.settings.show_payment_icons -%}
+        <div class="footer-payment-icons" aria-label="Metodi di pagamento accettati">
+          {%- for type in shop.enabled_payment_types -%}
+            {{ type | payment_type_svg_tag: class: 'payment-icon' }}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+    </div>
+  </div>
+
+</footer>
+
+<style>
+  /* ─── Social strip ─── */
+  .footer-social-strip {
+    background-color: var(--color-cream);
+    border-top: var(--border);
+    padding: 20px 0;
+  }
+
+  .footer-social-strip__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+  }
+
+  .footer-social-strip__text {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .footer-social__icons {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .footer-social__icons a {
+    color: var(--color-text);
+    display: inline-flex;
+    align-items: center;
+    transition: opacity var(--transition-fast);
+  }
+
+  .footer-social__icons a:hover {
+    opacity: 0.65;
+  }
+
+  .footer-social__icons svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* ─── Main footer ─── */
+  .footer-main {
+    padding: var(--space-2xl) 0;
+    border-top: var(--border);
+    background-color: var(--color-bg);
+  }
+
+  .footer-main__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xl);
+  }
+
+  /* ─── Footer columns ─── */
+  .footer-col__title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text);
+    margin-bottom: 16px;
+  }
+
+  .footer-col__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-col__list li {
+    margin-bottom: 8px;
+  }
+
+  .footer-col__list a {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .footer-col__list a:hover {
+    color: var(--color-text);
+  }
+
+  /* Contact column */
+  .footer-contact-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    margin-bottom: 12px;
+    transition: color var(--transition-fast);
+  }
+
+  .footer-contact-link:hover {
+    color: var(--color-text);
+  }
+
+  .footer-contact-link svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ─── Bottom bar ─── */
+  .footer-bottom {
+    border-top: var(--border);
+    padding: 20px 0;
+    background-color: var(--color-bg);
+  }
+
+  .footer-bottom__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-bottom__copy {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .footer-bottom__legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-bottom__legal a {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .footer-bottom__legal a:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  /* Payment icons */
+  .footer-payment-icons {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .payment-icon {
+    height: 24px;
+    width: auto;
+    filter: grayscale(100%);
+    opacity: 0.7;
+  }
+
+  /* ─── Desktop: 4 columns ─── */
+  @media (min-width: 768px) {
+    .footer-main__grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+    }
+  }
+
+  /* ─── Mobile: accordion columns + stack bottom bar ─── */
+  @media (max-width: 767px) {
+    .footer-main {
+      padding: var(--space-lg) 0;
+    }
+
+    .footer-main__grid {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .footer-col {
+      border-bottom: var(--border);
+    }
+
+    /* Title becomes accordion trigger on mobile */
+    .footer-col__title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0;
+      padding: var(--space-md) 0;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .footer-col__title::after {
+      content: '+';
+      font-size: var(--font-size-md);
+      font-weight: var(--font-weight-regular);
+      color: var(--color-text-muted);
+      transition: transform var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .footer-col.is-open .footer-col__title::after {
+      transform: rotate(45deg);
+    }
+
+    /* List and contact links hidden by default on mobile */
+    .footer-col__list,
+    .footer-col--contact .footer-contact-link {
+      display: none;
+      overflow: hidden;
+    }
+
+    .footer-col__list {
+      padding-bottom: var(--space-md);
+    }
+
+    .footer-col.is-open .footer-col__list,
+    .footer-col.is-open.footer-col--contact .footer-contact-link {
+      display: block;
+    }
+
+    .footer-col.is-open.footer-col--contact .footer-contact-link {
+      display: flex;
+    }
+
+    .footer-bottom__inner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    /* Footer accordion — mobile only */
+    function initFooterAccordions() {
+      if (window.innerWidth >= 768) return;
+
+      var cols = document.querySelectorAll('.footer-col');
+      cols.forEach(function (col) {
+        var title = col.querySelector('.footer-col__title');
+        if (!title) return;
+
+        title.addEventListener('click', function () {
+          var isOpen = col.classList.contains('is-open');
+          /* Close all */
+          cols.forEach(function (c) { c.classList.remove('is-open'); });
+          /* Open clicked if it was closed */
+          if (!isOpen) col.classList.add('is-open');
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', initFooterAccordions);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Social strip"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social_strip",
+      "label": "Show social strip",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "social_strip_text",
+      "label": "Social strip text",
+      "default": "Seguici sui social"
+    },
+    {
+      "type": "header",
+      "content": "Column 1"
+    },
+    {
+      "type": "text",
+      "id": "col1_title",
+      "label": "Column 1 title",
+      "default": "Shop"
+    },
+    {
+      "type": "link_list",
+      "id": "col1_menu",
+      "label": "Column 1 menu",
+      "default": "footer-shop"
+    },
+    {
+      "type": "header",
+      "content": "Column 2"
+    },
+    {
+      "type": "text",
+      "id": "col2_title",
+      "label": "Column 2 title",
+      "default": "Skin First"
+    },
+    {
+      "type": "link_list",
+      "id": "col2_menu",
+      "label": "Column 2 menu",
+      "default": "footer-brand"
+    },
+    {
+      "type": "header",
+      "content": "Column 3"
+    },
+    {
+      "type": "text",
+      "id": "col3_title",
+      "label": "Column 3 title",
+      "default": "Customer Care"
+    },
+    {
+      "type": "link_list",
+      "id": "col3_menu",
+      "label": "Column 3 menu",
+      "default": "footer-care"
+    },
+    {
+      "type": "header",
+      "content": "Column 4"
+    },
+    {
+      "type": "text",
+      "id": "col4_title",
+      "label": "Column 4 title",
+      "default": "Contatti"
+    },
+    {
+      "type": "text",
+      "id": "contact_email",
+      "label": "Contact email",
+      "info": "If set, a 'Invia una e-mail' link to /pages/contatti is shown."
+    },
+    {
+      "type": "header",
+      "content": "Bottom bar"
+    },
+    {
+      "type": "text",
+      "id": "company_info",
+      "label": "Company name",
+      "default": "Skin First Cosmetics S.r.l.",
+      "info": "Shown in the copyright line."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "Show payment icons",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Footer"
+    }
+  ]
+}
+{% endschema %}

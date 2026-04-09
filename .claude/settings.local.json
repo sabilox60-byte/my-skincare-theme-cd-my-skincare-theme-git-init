@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n \"#[0-9A-Fa-f]\\\\{3,8\\\\}\" \"c:/Users/Sabilux/Desktop/clone shopify theme paid/my-skincare-theme-cd-my-skincare-theme-git-init/assets/theme.css\")"
+    ]
+  }
+}

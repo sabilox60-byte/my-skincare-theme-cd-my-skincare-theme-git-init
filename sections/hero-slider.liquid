@@ -1,0 +1,377 @@
+{%- comment -%}
+  hero-slider.liquid
+  ───────────────────
+  Full-viewport hero carousel. Supports video slides and image slides.
+  Swiper.js (CDN) — autoplay 5s, dot pagination only, no arrows.
+  JS init delegates to Theme.Slider.initHeroSlider() in assets/theme.js.
+{%- endcomment -%}
+
+<section class="section-hero-slider"
+         data-section-id="{{ section.id }}"
+         aria-label="Hero">
+
+  <div class="swiper hero-swiper"
+       data-hero-swiper
+       data-autoplay="{{ section.settings.autoplay_speed }}">
+
+    <div class="swiper-wrapper">
+
+      {%- for block in section.blocks -%}
+
+        <div class="swiper-slide hero-slide hero-slide--{{ block.type }}"
+             {{ block.shopify_attributes }}>
+
+          {%- if block.type == 'video_slide' -%}
+            {%- comment -%} ── Video slide ── {%- endcomment -%}
+            <div class="hero-slide__media">
+              {%- if block.settings.video != blank -%}
+                {%- comment -%} Video: hidden on mobile, shown on desktop {%- endcomment -%}
+                {{- block.settings.video | video_tag:
+                      autoplay: true,
+                      muted: true,
+                      loop: true,
+                      playsinline: true,
+                      preload: 'none',
+                      class: 'hero-video',
+                      poster: block.settings.fallback_image | image_url: width: 1920
+                -}}
+              {%- endif -%}
+              {%- comment -%} Fallback image: shown on mobile (or when no video) {%- endcomment -%}
+              {%- if block.settings.fallback_image != blank -%}
+                <img class="hero-video-fallback"
+                     src="{{ block.settings.fallback_image | image_url: width: 1200 }}"
+                     srcset="{{ block.settings.fallback_image | image_url: width: 800 }} 800w,
+                             {{ block.settings.fallback_image | image_url: width: 1200 }} 1200w,
+                             {{ block.settings.fallback_image | image_url: width: 1920 }} 1920w"
+                     sizes="100vw"
+                     alt="{{ block.settings.fallback_image.alt | escape }}"
+                     loading="eager"
+                     fetchpriority="high"
+                     width="1920"
+                     height="1080">
+              {%- endif -%}
+            </div>
+
+          {%- elsif block.type == 'image_slide' -%}
+            {%- comment -%} ── Image slide ── {%- endcomment -%}
+            <div class="hero-slide__media">
+              {%- if block.settings.image_desktop != blank -%}
+                <picture>
+                  {%- if block.settings.image_mobile != blank -%}
+                    <source media="(max-width: 767px)"
+                            srcset="{{ block.settings.image_mobile | image_url: width: 800 }} 800w,
+                                    {{ block.settings.image_mobile | image_url: width: 1200 }} 1200w"
+                            sizes="100vw">
+                  {%- endif -%}
+                  <img src="{{ block.settings.image_desktop | image_url: width: 1920 }}"
+                       srcset="{{ block.settings.image_desktop | image_url: width: 1200 }} 1200w,
+                               {{ block.settings.image_desktop | image_url: width: 1920 }} 1920w"
+                       sizes="100vw"
+                       alt="{{ block.settings.image_desktop.alt | escape }}"
+                       loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                       {% if forloop.first %}fetchpriority="high"{% endif %}>
+                </picture>
+              {%- endif -%}
+            </div>
+
+            {%- if block.settings.heading != blank or block.settings.cta_label != blank -%}
+              <div class="hero-slide__overlay" aria-hidden="true"></div>
+              <div class="hero-slide__content
+                {%- case block.settings.text_position -%}
+                  {%- when 'center' -%}         hero-slide__content--center
+                  {%- when 'bottom-left' -%}    hero-slide__content--bottom-left
+                  {%- when 'bottom-right' -%}   hero-slide__content--bottom-right
+                  {%- else -%}                  hero-slide__content--center
+                {%- endcase -%}">
+
+                {%- if block.settings.heading != blank -%}
+                  <h2 class="hero-slide__heading">
+                    {{ block.settings.heading | escape }}
+                  </h2>
+                {%- endif -%}
+
+                {%- if block.settings.subheading != blank -%}
+                  <p class="hero-slide__subheading">
+                    {{ block.settings.subheading | escape }}
+                  </p>
+                {%- endif -%}
+
+                {%- if block.settings.cta_label != blank and block.settings.cta_link != blank -%}
+                  <a href="{{ block.settings.cta_link }}"
+                     class="btn {% if block.settings.cta_style == 'outline-white' %}btn-outline-white{% else %}btn-primary{% endif %}">
+                    {{ block.settings.cta_label | escape }}
+                  </a>
+                {%- endif -%}
+
+              </div>
+            {%- endif -%}
+
+          {%- endif -%}
+
+        </div>{%- comment -%} /.swiper-slide {%- endcomment -%}
+
+      {%- endfor -%}
+
+    </div>{%- comment -%} /.swiper-wrapper {%- endcomment -%}
+
+    <div class="swiper-pagination hero-pagination"
+         aria-label="Navigazione slide"></div>
+
+  </div>{%- comment -%} /.swiper.hero-swiper {%- endcomment -%}
+
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-hero-slider {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-text);
+  }
+
+  /* ─── Swiper container fills full viewport ─── */
+  .hero-swiper {
+    width: 100%;
+    height: 70vw;
+    min-height: 300px;
+  }
+
+  /* ─── Each slide ─── */
+  .hero-slide {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ─── Media wrapper: image or video fills slide ─── */
+  .hero-slide__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hero-slide__media img,
+  .hero-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  /* On mobile: hide video, show fallback image */
+  .hero-video { display: none; }
+  .hero-video-fallback { display: block; }
+
+  @media (min-width: 768px) {
+    /* On desktop: show video, hide fallback (poster on video handles initial frame) */
+    .hero-video { display: block; }
+    .hero-video-fallback { display: none; }
+  }
+
+  /* ─── Gradient overlay (below text) ─── */
+  .hero-slide__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(transparent 40%, rgba(0, 0, 0, 0.45) 100%);
+    pointer-events: none;
+  }
+
+  /* ─── Text content ─── */
+  .hero-slide__content {
+    position: absolute;
+    z-index: 2;
+    padding: var(--space-xl) var(--container-padding);
+    color: var(--color-bg);
+    max-width: 700px;
+  }
+
+  /* Position variants */
+  .hero-slide__content--center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    max-width: 640px;
+    width: 100%;
+  }
+
+  .hero-slide__content--bottom-left {
+    bottom: var(--space-2xl);
+    left: var(--container-padding);
+  }
+
+  .hero-slide__content--bottom-right {
+    bottom: var(--space-2xl);
+    right: var(--container-padding);
+    text-align: right;
+  }
+
+  .hero-slide__heading {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-bg);
+    margin-bottom: var(--space-md);
+    line-height: 1.1;
+  }
+
+  .hero-slide__subheading {
+    font-size: var(--font-size-md);
+    color: var(--color-bg);
+    opacity: 0.9;
+    margin-bottom: var(--space-lg);
+    line-height: var(--line-height-base);
+  }
+
+  /* ─── Pagination dots ─── */
+  .hero-pagination {
+    bottom: var(--space-lg) !important;
+  }
+
+  .hero-pagination .swiper-pagination-bullet {
+    width: 6px;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.55);
+    opacity: 1;
+    transition: background-color var(--transition-fast), width var(--transition-fast);
+  }
+
+  .hero-pagination .swiper-pagination-bullet-active {
+    background-color: var(--color-bg);
+    width: 20px;
+    border-radius: var(--radius-pill);
+  }
+
+  /* ─── Desktop: full viewport height ─── */
+  @media (min-width: 768px) {
+    .hero-swiper {
+      height: 100svh;
+      min-height: 500px;
+    }
+
+    .hero-slide__content--center {
+      padding: var(--space-2xl) var(--container-padding);
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof Theme !== 'undefined' && Theme.Slider) {
+      Theme.Slider.initHeroSlider();
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Hero Slider",
+  "settings": [
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "Autoplay speed",
+      "min": 3000,
+      "max": 8000,
+      "step": 500,
+      "default": 5000,
+      "unit": "ms",
+      "info": "Time each slide is shown before advancing. Video slides ignore this."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "video_slide",
+      "name": "Video Slide",
+      "settings": [
+        {
+          "type": "video",
+          "id": "video",
+          "label": "Video",
+          "info": "Shopify-hosted video. Autoplay, muted, loop."
+        },
+        {
+          "type": "image_picker",
+          "id": "fallback_image",
+          "label": "Fallback image",
+          "info": "Shown on mobile or if video cannot play."
+        }
+      ]
+    },
+    {
+      "type": "image_slide",
+      "name": "Image Slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image_desktop",
+          "label": "Desktop image",
+          "info": "Recommended: 1920×1080px or wider."
+        },
+        {
+          "type": "image_picker",
+          "id": "image_mobile",
+          "label": "Mobile image (optional)",
+          "info": "Shown on screens ≤ 767px. Portrait crop recommended."
+        },
+        {
+          "type": "header",
+          "content": "Text overlay"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "text",
+          "id": "subheading",
+          "label": "Subheading"
+        },
+        {
+          "type": "select",
+          "id": "text_position",
+          "label": "Text position",
+          "options": [
+            { "value": "center",       "label": "Center" },
+            { "value": "bottom-left",  "label": "Bottom left" },
+            { "value": "bottom-right", "label": "Bottom right" }
+          ],
+          "default": "center"
+        },
+        {
+          "type": "header",
+          "content": "Call to action"
+        },
+        {
+          "type": "text",
+          "id": "cta_label",
+          "label": "Button label"
+        },
+        {
+          "type": "url",
+          "id": "cta_link",
+          "label": "Button link"
+        },
+        {
+          "type": "select",
+          "id": "cta_style",
+          "label": "Button style",
+          "options": [
+            { "value": "primary",       "label": "Black (primary)" },
+            { "value": "outline-white", "label": "White outline" }
+          ],
+          "default": "outline-white"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Slider",
+      "blocks": [
+        { "type": "video_slide" },
+        { "type": "image_slide" }
+      ]
+    }
+  ]
+}
+{% endschema %}

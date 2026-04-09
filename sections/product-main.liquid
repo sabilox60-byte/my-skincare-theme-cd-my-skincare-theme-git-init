@@ -1,0 +1,741 @@
+{%- comment -%}
+  product-main.liquid
+  ────────────────────
+  Primary PDP section — gallery (55%) + buy box (45%).
+  Gallery: vertical thumb rail + main viewer, JS-driven image swap.
+  Buy box: sticky, contains rating, title, price, variant selector, qty + ATC.
+  Inline JS handles gallery thumb clicks and variant radio changes.
+  Theme.ATC and Theme.QtySelector (from theme.js) attach to this section's elements.
+{%- endcomment -%}
+
+<section class="section-product-main"
+         data-section-id="{{ section.id }}">
+  <div class="container">
+    <div class="product-main__layout">
+
+      {%- comment -%} ════ LEFT: Gallery ════ {%- endcomment -%}
+      <div class="product-gallery" id="product-gallery">
+
+        {%- comment -%} Thumbnail rail (vertical, desktop) {%- endcomment -%}
+        <div class="gallery-thumbs" role="list">
+          {%- for media in product.media -%}
+            <button class="gallery-thumb{% if forloop.first %} is-active{% endif %}"
+                    type="button"
+                    data-media-id="{{ media.id }}"
+                    aria-label="Vedi immagine {{ forloop.index }}"
+                    aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
+                    role="listitem">
+              {%- if media.media_type == 'video' -%}
+                <img src="{{ media.preview_image | image_url: width: 160 }}"
+                     alt="{{ media.alt | escape }}"
+                     loading="lazy"
+                     width="80"
+                     height="80">
+                <span class="gallery-thumb__play" aria-hidden="true">▶</span>
+              {%- else -%}
+                <img src="{{ media | image_url: width: 160 }}"
+                     alt="{{ media.alt | escape }}"
+                     loading="lazy"
+                     width="80"
+                     height="80">
+              {%- endif -%}
+            </button>
+          {%- endfor -%}
+        </div>
+
+        {%- comment -%} Main viewer {%- endcomment -%}
+        <div class="gallery-main" id="gallery-main">
+          {%- for media in product.media -%}
+            <div class="gallery-main__item{% if forloop.first %} is-active{% endif %}"
+                 data-media-id="{{ media.id }}">
+              {%- if media.media_type == 'video' -%}
+                {{- media | video_tag:
+                      image_size: '1000x',
+                      loop: false,
+                      controls: true,
+                      class: 'gallery-video'
+                -}}
+              {%- else -%}
+                <img src="{{ media | image_url: width: 1000 }}"
+                     srcset="{{ media | image_url: width: 600 }} 600w,
+                             {{ media | image_url: width: 1000 }} 1000w,
+                             {{ media | image_url: width: 1500 }} 1500w"
+                     sizes="(min-width: 1024px) 55vw, 100vw"
+                     alt="{{ media.alt | escape }}"
+                     loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                     width="1000"
+                     height="1000">
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+      </div>{%- comment -%} /.product-gallery {%- endcomment -%}
+
+      {%- comment -%} ════ RIGHT: Buy Box ════ {%- endcomment -%}
+      <div class="product-buybox" id="ProductInfo-{{ section.id }}">
+
+        {%- comment -%} Rating stars (metafield-driven) {%- endcomment -%}
+        {%- render 'rating-stars', product: product -%}
+
+        {%- comment -%} Title {%- endcomment -%}
+        <h1 class="product-buybox__title">{{ product.title }}</h1>
+
+        {%- comment -%} Short description — first paragraph only {%- endcomment -%}
+        {%- if product.description != blank -%}
+          <div class="product-buybox__desc">
+            {{ product.description | split: '</p>' | first | append: '</p>' }}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Trust badge {%- endcomment -%}
+        {%- if section.settings.trust_badge_text != blank -%}
+          <p class="product-buybox__trust">
+            {{ section.settings.trust_badge_text | escape }}
+          </p>
+        {%- endif -%}
+
+        {%- comment -%} Property icons from metafield (optional) {%- endcomment -%}
+        {%- assign prop_icons = product.metafields.skincare.property_icons.value -%}
+        {%- if prop_icons != blank -%}
+          <div class="product-buybox__icons" aria-hidden="true">
+            {%- for icon in prop_icons -%}
+              <div class="prop-icon">
+                {%- if icon.image_url != blank -%}
+                  <img src="{{ icon.image_url }}"
+                       alt="{{ icon.label | escape }}"
+                       width="32"
+                       height="32"
+                       loading="lazy">
+                {%- endif -%}
+                {%- if icon.label != blank -%}
+                  <span class="prop-icon__label">{{ icon.label | escape }}</span>
+                {%- endif -%}
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Price {%- endcomment -%}
+        <div class="product-buybox__price" id="price-{{ section.id }}">
+          {%- if product.compare_at_price > product.price -%}
+            <span class="price price--sale">{{ product.price | money }}</span>
+            <s class="price price--compare">{{ product.compare_at_price | money }}</s>
+          {%- else -%}
+            <span class="price">{{ product.price | money }}</span>
+          {%- endif -%}
+        </div>
+
+        {%- comment -%} Variant selector {%- endcomment -%}
+        {%- if product.has_only_default_variant == false -%}
+          <div class="product-buybox__variants"
+               data-variant-selector
+               data-product-variants="{{ product.variants | json | escape }}">
+            {%- for option in product.options_with_values -%}
+              <fieldset class="variant-fieldset">
+                <legend class="variant-fieldset__legend">{{ option.name }}</legend>
+                <div class="variant-pills">
+                  {%- for value in option.values -%}
+                    <label class="variant-pill">
+                      <input type="radio"
+                             name="option-{{ option.position }}"
+                             value="{{ value | escape }}"
+                             data-option-position="{{ option.position }}"
+                             {%- if option.selected_value == value -%}checked{%- endif -%}>
+                      <span>{{ value | escape }}</span>
+                    </label>
+                  {%- endfor -%}
+                </div>
+              </fieldset>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Quantity + Add to Cart {%- endcomment -%}
+        <div class="product-buybox__actions">
+          <div class="qty-selector" data-qty-selector>
+            <button class="qty-btn qty-btn--minus"
+                    type="button"
+                    aria-label="Diminuisci quantità">
+              {%- render 'icon-sprite', icon: 'icon-minus' -%}
+            </button>
+            <input type="number"
+                   class="qty-input"
+                   value="1"
+                   min="1"
+                   max="99"
+                   name="quantity"
+                   aria-label="Quantità">
+            <button class="qty-btn qty-btn--plus"
+                    type="button"
+                    aria-label="Aumenta quantità">
+              {%- render 'icon-sprite', icon: 'icon-plus' -%}
+            </button>
+          </div>
+
+          <button class="btn btn-primary btn-full btn-atc"
+                  type="button"
+                  data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+                  data-product-title="{{ product.title | escape }}"
+                  aria-label="Aggiungi {{ product.title | escape }} al carrello"
+                  {%- unless product.available -%}disabled{%- endunless -%}>
+            {%- if product.available -%}
+              Aggiungi al carrello
+            {%- else -%}
+              Esaurito
+            {%- endif -%}
+          </button>
+        </div>
+
+        {%- comment -%} Perks list {%- endcomment -%}
+        <ul class="product-buybox__perks">
+          <li>
+            {%- render 'icon-sprite', icon: 'icon-truck' -%}
+            <span>{{ section.settings.shipping_perk | default: 'Spedizione gratuita da €39' | escape }}</span>
+          </li>
+          <li>
+            {%- render 'icon-sprite', icon: 'icon-gift' -%}
+            <span>{{ section.settings.gift_perk | default: 'Mini Beauty Case in omaggio da €39' | escape }}</span>
+          </li>
+          {%- if section.settings.bnpl_text != blank -%}
+            <li>
+              <span class="bnpl-badge">{{ section.settings.bnpl_text | escape }}</span>
+            </li>
+          {%- endif -%}
+        </ul>
+
+      </div>{%- comment -%} /.product-buybox {%- endcomment -%}
+
+    </div>{%- comment -%} /.product-main__layout {%- endcomment -%}
+  </div>
+</section>
+
+<style>
+  /* ─── Two-column layout ─── */
+  .product-main__layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+    padding-block: var(--space-2xl);
+  }
+
+  /* ─── Gallery ─── */
+  .product-gallery {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  /* Thumbnail rail — hidden on mobile, vertical on desktop */
+  .gallery-thumbs {
+    display: none;
+  }
+
+  .gallery-thumb {
+    width: 80px;
+    height: 80px;
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color var(--transition-fast);
+  }
+
+  .gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .gallery-thumb.is-active {
+    border-color: var(--color-text);
+  }
+
+  .gallery-thumb:hover:not(.is-active) {
+    border-color: var(--color-border-dark);
+  }
+
+  .gallery-thumb__play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--color-bg);
+    background: var(--overlay-mid);
+  }
+
+  /* Main viewer */
+  .gallery-main {
+    position: relative;
+  }
+
+  .gallery-main__item {
+    display: none;
+  }
+
+  .gallery-main__item.is-active {
+    display: block;
+  }
+
+  .gallery-main__item img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    border-radius: var(--radius-md);
+    background-color: var(--color-cream);
+  }
+
+  .gallery-video {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    display: block;
+  }
+
+  /* ─── Buy box ─── */
+  .product-buybox {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .product-buybox__title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    line-height: var(--line-height-heading);
+  }
+
+  .product-buybox__desc {
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+  }
+
+  .product-buybox__desc p {
+    margin: 0;
+  }
+
+  .product-buybox__trust {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  /* Property icons */
+  .product-buybox__icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+  }
+
+  .prop-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .prop-icon__label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+
+  /* Price */
+  .product-buybox__price {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+
+  .price {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+  }
+
+  .price--sale {
+    color: var(--color-error);
+  }
+
+  .price--compare {
+    font-size: var(--font-size-base);
+    color: var(--color-text-hint);
+    font-weight: var(--font-weight-regular);
+  }
+
+  /* Variant selector */
+  .product-buybox__variants {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .variant-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .variant-fieldset__legend {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    margin-bottom: var(--space-sm);
+    display: block;
+  }
+
+  .variant-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .variant-pill {
+    cursor: pointer;
+  }
+
+  .variant-pill input[type="radio"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .variant-pill span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    transition:
+      border-color var(--transition-fast),
+      color var(--transition-fast),
+      background-color var(--transition-fast);
+  }
+
+  .variant-pill input[type="radio"]:checked + span {
+    border-color: var(--color-text);
+    color: var(--color-text);
+    background-color: var(--color-text);
+    color: var(--color-bg);
+  }
+
+  .variant-pill:hover span {
+    border-color: var(--color-text);
+    color: var(--color-text);
+  }
+
+  /* Qty + ATC */
+  .product-buybox__actions {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: stretch;
+  }
+
+  .qty-selector {
+    display: inline-flex;
+    align-items: center;
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .qty-btn {
+    width: 40px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+    transition: background-color var(--transition-fast);
+  }
+
+  .qty-btn:hover {
+    background-color: var(--color-cream);
+  }
+
+  .qty-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .qty-input {
+    width: 44px;
+    height: 44px;
+    text-align: center;
+    border: none;
+    border-left: var(--border);
+    border-right: var(--border);
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background: transparent;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  .qty-input::-webkit-outer-spin-button,
+  .qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .product-buybox__actions .btn-atc {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Perks */
+  .product-buybox__perks {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: var(--space-sm);
+    border-top: var(--border);
+  }
+
+  .product-buybox__perks li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .product-buybox__perks svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .bnpl-badge {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* ─── Mobile: horizontal thumb strip below main image ─── */
+  @media (max-width: 1023px) {
+    .product-gallery {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    /* Thumbs shown as horizontal row on mobile */
+    .gallery-thumbs {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      order: 2; /* Below main image */
+    }
+
+    .gallery-thumbs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .gallery-thumb {
+      flex-shrink: 0;
+    }
+
+    .gallery-main {
+      order: 1;
+    }
+  }
+
+  /* ─── Desktop: 55/45 side-by-side ─── */
+  @media (min-width: 1024px) {
+    .product-main__layout {
+      grid-template-columns: 55fr 45fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    .product-gallery {
+      grid-template-columns: 80px 1fr;
+      gap: 12px;
+    }
+
+    .gallery-thumbs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      max-height: 600px;
+    }
+
+    .product-buybox {
+      position: sticky;
+      top: calc(var(--header-height) + var(--space-xl));
+      align-self: start;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    document.addEventListener('DOMContentLoaded', function () {
+      var section   = document.querySelector('[data-section-id="{{ section.id }}"]');
+      if (!section) return;
+
+      /* ── Gallery thumb switcher ── */
+      var thumbs = section.querySelectorAll('.gallery-thumb');
+      var items  = section.querySelectorAll('.gallery-main__item');
+
+      thumbs.forEach(function (thumb) {
+        thumb.addEventListener('click', function () {
+          var id = thumb.dataset.mediaId;
+
+          thumbs.forEach(function (t) {
+            t.classList.remove('is-active');
+            t.setAttribute('aria-pressed', 'false');
+          });
+          items.forEach(function (i) { i.classList.remove('is-active'); });
+
+          thumb.classList.add('is-active');
+          thumb.setAttribute('aria-pressed', 'true');
+
+          var target = section.querySelector('.gallery-main__item[data-media-id="' + id + '"]');
+          if (target) target.classList.add('is-active');
+        });
+      });
+
+      /* ── Variant selector ── */
+      var variantWrap = section.querySelector('[data-variant-selector]');
+      if (!variantWrap) return;
+
+      var variantsData = JSON.parse(variantWrap.dataset.productVariants || '[]');
+      var radios       = variantWrap.querySelectorAll('input[type="radio"]');
+      var atcBtn       = section.querySelector('.btn-atc');
+      var priceEl      = section.querySelector('[id^="price-"]');
+
+      function getSelectedOptions() {
+        var selected = {};
+        radios.forEach(function (r) {
+          if (r.checked) {
+            selected[parseInt(r.dataset.optionPosition, 10)] = r.value;
+          }
+        });
+        return selected;
+      }
+
+      function findVariant(selectedOptions) {
+        return variantsData.find(function (v) {
+          return Object.entries(selectedOptions).every(function (entry) {
+            var pos = entry[0], val = entry[1];
+            return v['option' + pos] === val;
+          });
+        });
+      }
+
+      function formatMoney(cents) {
+        if (typeof Theme !== 'undefined' && Theme.Utils && Theme.Utils.formatMoney) {
+          return Theme.Utils.formatMoney(cents);
+        }
+        return (cents / 100).toFixed(2).replace('.', ',') + '\u00a0\u20ac';
+      }
+
+      function updateBuybox(variant) {
+        if (!variant) return;
+
+        /* Update ATC button */
+        if (atcBtn) {
+          atcBtn.dataset.variantId = variant.id;
+          if (variant.available) {
+            atcBtn.disabled = false;
+            atcBtn.textContent = 'Aggiungi al carrello';
+          } else {
+            atcBtn.disabled = true;
+            atcBtn.textContent = 'Esaurito';
+          }
+        }
+
+        /* Update price */
+        if (priceEl) {
+          if (variant.compare_at_price > variant.price) {
+            priceEl.innerHTML =
+              '<span class="price price--sale">' + formatMoney(variant.price) + '</span>' +
+              '<s class="price price--compare">' + formatMoney(variant.compare_at_price) + '</s>';
+          } else {
+            priceEl.innerHTML = '<span class="price">' + formatMoney(variant.price) + '</span>';
+          }
+        }
+      }
+
+      radios.forEach(function (radio) {
+        radio.addEventListener('change', function () {
+          var selected = getSelectedOptions();
+          var variant  = findVariant(selected);
+          if (variant) updateBuybox(variant);
+        });
+      });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Product Main",
+  "settings": [
+    {
+      "type": "text",
+      "id": "trust_badge_text",
+      "label": "Trust badge text",
+      "default": "FORMULATO DA FARMACISTI E COSMETOLOGI"
+    },
+    {
+      "type": "text",
+      "id": "shipping_perk",
+      "label": "Shipping perk text",
+      "default": "Spedizione gratuita da \u20ac39"
+    },
+    {
+      "type": "text",
+      "id": "gift_perk",
+      "label": "Gift perk text",
+      "default": "Mini Beauty Case in omaggio da \u20ac39"
+    },
+    {
+      "type": "text",
+      "id": "bnpl_text",
+      "label": "Buy now pay later text",
+      "default": "Paga in 3 rate con Klarna"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Main"
+    }
+  ]
+}
+{% endschema %}

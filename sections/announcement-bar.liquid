@@ -1,0 +1,193 @@
+{%- comment -%}
+  announcement-bar.liquid
+  ────────────────────────
+  Full-width sticky promotional bar at the very top of the page.
+  - Background: var(--color-cream) by default (overrideable via schema)
+  - 40px desktop / 36px mobile height
+  - Optional X dismiss button — persists via sessionStorage
+  - JS dismissal check runs inline (no defer) to avoid layout flash
+{%- endcomment -%}
+
+{%- if section.settings.enabled -%}
+
+<div class="announcement-bar"
+     id="announcement-bar"
+     data-announcement-bar
+     role="banner"
+     style="
+       {%- if section.settings.bg_color != blank -%}
+         background-color: {{ section.settings.bg_color }};
+       {%- endif -%}
+       {%- if section.settings.text_color != blank -%}
+         color: {{ section.settings.text_color }};
+       {%- endif -%}
+     ">
+
+  <div class="announcement-bar__inner">
+
+    {%- if section.settings.link != blank -%}
+      <a href="{{ section.settings.link }}"
+         class="announcement-bar__text">
+        {{ section.settings.text }}
+      </a>
+    {%- else -%}
+      <p class="announcement-bar__text">
+        {{ section.settings.text }}
+      </p>
+    {%- endif -%}
+
+    {%- if section.settings.show_close -%}
+      <button class="announcement-bar__close"
+              type="button"
+              aria-label="Chiudi banner"
+              data-announcement-close>
+        {%- render 'icon-sprite', icon: 'icon-close' -%}
+      </button>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<style>
+  .announcement-bar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    background-color: var(--color-cream);
+    border-bottom: var(--border);
+    width: 100%;
+  }
+
+  .announcement-bar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 36px;
+    padding-block: 6px;
+    padding-inline: calc(var(--container-padding) + 32px); /* room for close btn */
+  }
+
+  .announcement-bar__text {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-regular);
+    color: inherit;
+    text-align: center;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  a.announcement-bar__text:hover {
+    text-decoration: underline;
+  }
+
+  .announcement-bar__close {
+    position: absolute;
+    right: var(--container-padding);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    color: inherit;
+    opacity: 0.6;
+    transition: opacity var(--transition-fast), background-color var(--transition-fast);
+    flex-shrink: 0;
+  }
+
+  .announcement-bar__close:hover {
+    opacity: 1;
+    background-color: var(--overlay-light);
+  }
+
+  .announcement-bar__close svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .announcement-bar[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .announcement-bar__inner {
+      min-height: 40px;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var bar       = document.getElementById('announcement-bar');
+    var closeBtn  = document.querySelector('[data-announcement-close]');
+    var KEY       = 'announcement_dismissed_{{ section.id }}';
+
+    /* Hide immediately if previously dismissed in this session */
+    if (bar && sessionStorage.getItem(KEY) === '1') {
+      bar.setAttribute('hidden', '');
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        bar.setAttribute('hidden', '');
+        try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+      });
+    }
+  })();
+</script>
+
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Announcement Bar",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Show announcement bar",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Announcement text",
+      "default": "🚚 Free Shipping e Mini Beauty Case in omaggio con 39€ di spesa."
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link (optional)"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#F5F2ED"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#111111"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_close",
+      "label": "Show dismiss button",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Announcement Bar"
+    }
+  ]
+}
+{% endschema %}

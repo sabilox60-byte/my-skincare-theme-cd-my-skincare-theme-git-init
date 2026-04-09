@@ -1,0 +1,366 @@
+{%- comment -%}
+  search-drawer.liquid
+  ─────────────────────
+  Slide-down search overlay. Opens from the top of the viewport.
+  Popular search terms are pulled from global Theme Editor settings
+  (settings_schema.json → "Search" group: search_popular_1 … search_popular_5).
+
+  JS integration points:
+    #search-drawer              — drawer root (Theme.Search.open/close)
+    [data-search-drawer]        — alternate JS selector
+    [data-search-input]         — focused automatically on open
+    [data-search-close]         — closes drawer
+    [data-open-search]          — opens drawer (used in header icon)
+{%- endcomment -%}
+
+{%- liquid
+  assign popular_1 = settings.search_popular_1 | default: 'Detergente viso'
+  assign popular_2 = settings.search_popular_2 | default: 'Vitamina C'
+  assign popular_3 = settings.search_popular_3 | default: 'Crema viso'
+  assign popular_4 = settings.search_popular_4 | default: 'SPF'
+  assign popular_5 = settings.search_popular_5 | default: 'Retinolo'
+
+  assign popular_terms = popular_1 | append: ',' | append: popular_2 | append: ',' | append: popular_3 | append: ',' | append: popular_4 | append: ',' | append: popular_5
+  assign popular_array = popular_terms | split: ','
+-%}
+
+<div id="search-drawer"
+     class="search-drawer"
+     role="dialog"
+     aria-modal="true"
+     aria-label="Cerca"
+     aria-expanded="false"
+     aria-hidden="true"
+     data-search-drawer>
+
+  <div class="search-drawer__panel">
+    <div class="search-drawer__inner container">
+
+      {%- comment -%} ── Search form ── {%- endcomment -%}
+      <form class="search-drawer__form"
+            action="{{ routes.search_url }}"
+            method="GET"
+            role="search">
+
+        {%- comment -%} Shopify requires type=product for predictive search {%- endcomment -%}
+        <input type="hidden" name="type" value="product,article">
+        <input type="hidden" name="options[prefix]" value="last">
+
+        <label for="search-drawer-input" class="visually-hidden">
+          Cerca prodotti
+        </label>
+
+        <div class="search-drawer__input-wrap">
+          <span class="search-drawer__input-icon" aria-hidden="true">
+            {%- render 'icon-sprite', icon: 'icon-search' -%}
+          </span>
+          <input id="search-drawer-input"
+                 class="search-drawer__input"
+                 type="search"
+                 name="q"
+                 placeholder="Cerca prodotti, ingredienti..."
+                 autocomplete="off"
+                 autocorrect="off"
+                 autocapitalize="off"
+                 spellcheck="false"
+                 aria-label="Cerca"
+                 data-search-input>
+          <button class="search-drawer__clear"
+                  type="button"
+                  aria-label="Cancella ricerca"
+                  data-search-clear
+                  hidden>
+            {%- render 'icon-sprite', icon: 'icon-close' -%}
+          </button>
+        </div>
+
+        <button class="search-drawer__submit"
+                type="submit"
+                aria-label="Cerca">
+          {%- render 'icon-sprite', icon: 'icon-search' -%}
+          <span class="visually-hidden">Cerca</span>
+        </button>
+
+        <button class="search-drawer__close"
+                type="button"
+                aria-label="Chiudi ricerca"
+                data-search-close>
+          {%- render 'icon-sprite', icon: 'icon-close' -%}
+        </button>
+
+      </form>
+
+      {%- comment -%} ── Popular search suggestions ── {%- endcomment -%}
+      <div class="search-drawer__suggestions">
+        <h3 class="search-drawer__suggestions-title">Ricerche frequenti</h3>
+        <ul class="search-drawer__suggestions-list" role="list">
+          {%- for term in popular_array -%}
+            {%- assign trimmed = term | strip -%}
+            {%- if trimmed != blank -%}
+              <li>
+                <a class="search-drawer__suggestion-link"
+                   href="{{ routes.search_url }}?type=product&q={{ trimmed | url_encode }}">
+                  {%- render 'icon-sprite', icon: 'icon-search' -%}
+                  {{ trimmed | escape }}
+                </a>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+
+      {%- comment -%}
+        Live search results area — populated by predictive search JS if
+        implemented in a future session. Hidden by default.
+      {%- endcomment -%}
+      <div class="search-drawer__results"
+           aria-live="polite"
+           aria-label="Risultati ricerca"
+           data-search-results
+           hidden>
+      </div>
+
+    </div>{%- comment -%} /.search-drawer__inner {%- endcomment -%}
+  </div>{%- comment -%} /.search-drawer__panel {%- endcomment -%}
+
+</div>{%- comment -%} /#search-drawer {%- endcomment -%}
+
+{%- comment -%}
+  ── Scoped styles ──
+  All rules prefixed with .search-drawer — no global side-effects.
+  References only CSS custom properties from theme.css :root.
+{%- endcomment -%}
+<style>
+  /* Drawer panel — slides down from top */
+  .search-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-drawer);
+    background-color: var(--color-bg);
+    border-bottom: var(--border);
+    box-shadow: 0 8px 32px var(--overlay-light);
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    will-change: transform;
+  }
+
+  .search-drawer.is-open {
+    transform: translateY(0);
+  }
+
+  /* Inner layout */
+  .search-drawer__panel {
+    padding-block: var(--space-lg);
+  }
+
+  .search-drawer__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  /* Search form row */
+  .search-drawer__form {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  /* Input wrapper with icon inside */
+  .search-drawer__input-wrap {
+    position: relative;
+    flex: 1;
+  }
+
+  .search-drawer__input-icon {
+    position: absolute;
+    left: var(--space-md);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-hint);
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+  }
+
+  .search-drawer__input-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .search-drawer__input {
+    width: 100%;
+    height: 48px;
+    padding: 0 var(--space-2xl) 0 calc(var(--space-md) + 16px + var(--space-sm));
+    font-family: var(--font-body);
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    background-color: var(--color-cream);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+    outline: none;
+  }
+
+  .search-drawer__input:focus {
+    background-color: var(--color-bg);
+    border-color: var(--color-text);
+  }
+
+  .search-drawer__input::placeholder {
+    color: var(--color-text-hint);
+  }
+
+  /* Clear button (shown when input has value, toggled by JS) */
+  .search-drawer__clear {
+    position: absolute;
+    right: var(--space-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .search-drawer__clear:hover {
+    color: var(--color-text);
+    background-color: var(--color-border);
+  }
+
+  .search-drawer__clear svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Submit button */
+  .search-drawer__submit {
+    display: none; /* hidden visually — form submits on Enter */
+  }
+
+  /* Close button */
+  .search-drawer__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    transition: background-color var(--transition-fast);
+  }
+
+  .search-drawer__close:hover {
+    background-color: var(--color-cream);
+  }
+
+  .search-drawer__close svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Popular suggestions */
+  .search-drawer__suggestions-title {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+  }
+
+  .search-drawer__suggestions-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .search-drawer__suggestion-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 6px var(--space-md);
+    border: var(--border);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    background-color: var(--color-cream);
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast),
+      border-color var(--transition-fast);
+  }
+
+  .search-drawer__suggestion-link svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  .search-drawer__suggestion-link:hover {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    border-color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .search-drawer__suggestion-link:hover svg {
+    opacity: 1;
+  }
+
+  /* Live results area */
+  .search-drawer__results {
+    border-top: var(--border);
+    padding-top: var(--space-md);
+  }
+
+  .search-drawer__results[hidden] {
+    display: none;
+  }
+
+  /* Tablet+ — wider inner on larger screens */
+  @media (min-width: 768px) {
+    .search-drawer__panel {
+      padding-block: var(--space-xl);
+    }
+  }
+</style>
+
+{%- comment -%}
+  ── Search clear button behaviour ──
+  Inline script — lightweight, no dependencies, runs synchronously.
+  Shows/hides the clear (×) button as the user types.
+{%- endcomment -%}
+<script>
+  (function () {
+    var input   = document.getElementById('search-drawer-input');
+    var clearBtn = document.querySelector('[data-search-clear]');
+    if (!input || !clearBtn) return;
+
+    function toggleClear() {
+      if (input.value.trim().length > 0) {
+        clearBtn.removeAttribute('hidden');
+      } else {
+        clearBtn.setAttribute('hidden', '');
+      }
+    }
+
+    input.addEventListener('input', toggleClear);
+
+    clearBtn.addEventListener('click', function () {
+      input.value = '';
+      input.focus();
+      toggleClear();
+    });
+  })();
+</script>

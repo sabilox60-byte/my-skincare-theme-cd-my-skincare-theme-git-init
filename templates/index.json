@@ -1,0 +1,246 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero-slider",
+      "blocks": {
+        "video_slide_1": {
+          "type": "video_slide",
+          "settings": {}
+        },
+        "image_slide_1": {
+          "type": "image_slide",
+          "settings": {
+            "text_position": "center",
+            "cta_style": "outline-white"
+          }
+        }
+      },
+      "block_order": [
+        "video_slide_1",
+        "image_slide_1"
+      ],
+      "settings": {
+        "autoplay_speed": 5000
+      }
+    },
+    "brand_values": {
+      "type": "brand-values",
+      "blocks": {
+        "value_1": {
+          "type": "value_item",
+          "settings": {
+            "label": "Formulati per un\u2019elevata efficacia."
+          }
+        },
+        "value_2": {
+          "type": "value_item",
+          "settings": {
+            "label": "Evolvono insieme alla ricerca scientifica."
+          }
+        },
+        "value_3": {
+          "type": "value_item",
+          "settings": {
+            "label": "Approvati dalla community."
+          }
+        }
+      },
+      "block_order": [
+        "value_1",
+        "value_2",
+        "value_3"
+      ],
+      "settings": {
+        "eyebrow": "Skin First",
+        "heading": "Science meets your skin",
+        "subheading": "Siamo un brand e una community fondati sulla scienza della pelle.",
+        "cta_label": "Vieni a conoscerci meglio"
+      }
+    },
+    "protocols_slider": {
+      "type": "protocols-slider",
+      "blocks": {
+        "protocol_1": {
+          "type": "protocol",
+          "settings": {
+            "title": "Pelle Impura",
+            "link": "/collections/impurita"
+          }
+        },
+        "protocol_2": {
+          "type": "protocol",
+          "settings": {
+            "title": "Pelle Sensibile",
+            "link": "/collections/rosacea-e-rossori"
+          }
+        },
+        "protocol_3": {
+          "type": "protocol",
+          "settings": {
+            "title": "Prime Rughe",
+            "link": "/collections/rughe-e-linee-sottili"
+          }
+        },
+        "protocol_4": {
+          "type": "protocol",
+          "settings": {
+            "title": "Pelle Mista",
+            "link": "/collections/controllo-del-sebo"
+          }
+        },
+        "protocol_5": {
+          "type": "protocol",
+          "settings": {
+            "title": "Pelle Asfittica",
+            "link": "/collections/pori-dilatati"
+          }
+        },
+        "protocol_6": {
+          "type": "protocol",
+          "settings": {
+            "title": "Pelle Matura",
+            "link": "/collections/prodotti-antiage"
+          }
+        },
+        "protocol_7": {
+          "type": "protocol",
+          "settings": {
+            "title": "Pelle Secca",
+            "link": "/collections/secchezza-cutanea-e-disidratazione"
+          }
+        },
+        "protocol_8": {
+          "type": "protocol",
+          "settings": {
+            "title": "Iperpigmentazione",
+            "link": "/collections/macchie-viso"
+          }
+        }
+      },
+      "block_order": [
+        "protocol_1",
+        "protocol_2",
+        "protocol_3",
+        "protocol_4",
+        "protocol_5",
+        "protocol_6",
+        "protocol_7",
+        "protocol_8"
+      ],
+      "settings": {
+        "eyebrow": "Comincia dalla tua pelle",
+        "heading": "Scopri il protocollo skincare adatto a te"
+      }
+    },
+    "routine_tabs": {
+      "type": "routine-tabs",
+      "blocks": {
+        "step_1": {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 1 \u00b7 Detersione",
+            "collection_handle": "detergenti-e-struccanti"
+          }
+        },
+        "step_2": {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 2 \u00b7 Esfoliazione",
+            "collection_handle": "esfoliazione"
+          }
+        },
+        "step_3": {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 3 \u00b7 Booster",
+            "collection_handle": "booster"
+          }
+        },
+        "step_4": {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 4 \u00b7 Contorno occhi",
+            "collection_handle": "contorno-occhi"
+          }
+        },
+        "step_5": {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 5 \u00b7 Idratazione",
+            "collection_handle": "creme-viso"
+          }
+        },
+        "step_6": {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 6 \u00b7 Protezione Solare",
+            "collection_handle": "creme-solari"
+          }
+        },
+        "trattamenti": {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Trattamenti",
+            "collection_handle": "trattamenti-e-maschere-viso"
+          }
+        }
+      },
+      "block_order": [
+        "step_1",
+        "step_2",
+        "step_3",
+        "step_4",
+        "step_5",
+        "step_6",
+        "trattamenti"
+      ],
+      "settings": {
+        "eyebrow": "La tua routine",
+        "heading": "Costruisci la routine perfetta per la tua pelle",
+        "body_text": "Ogni step \u00e8 formulato per lavorare in sinergia con gli altri."
+      }
+    },
+    "quiz_banner": {
+      "type": "quiz-banner",
+      "settings": {
+        "bg_color": "#F5F2ED",
+        "eyebrow": "Scopri la tua pelle",
+        "heading": "Fai il test della pelle in 2 minuti",
+        "body_text": "Rispondi ad alcune domande e ricevi una routine skincare personalizzata, formulata su misura per le tue esigenze.",
+        "cta_label": "Inizia il test"
+      }
+    },
+    "video_feature": {
+      "type": "video-feature",
+      "blocks": {},
+      "block_order": [],
+      "settings": {
+        "autoplay": true,
+        "loop": true,
+        "overlay_opacity": 20,
+        "content_position": "bottom-left",
+        "cta_style": "outline-white"
+      }
+    },
+    "newsletter_banner": {
+      "type": "newsletter-banner",
+      "settings": {
+        "eyebrow": "Resta aggiornato",
+        "heading": "Iscriviti alla nostra newsletter",
+        "subheading": "Consigli skincare, novit\u00e0 di prodotto e offerte esclusive riservate agli iscritti.",
+        "input_placeholder": "La tua email",
+        "submit_label": "Iscriviti",
+        "privacy_note": "Iscrivendoti accetti la nostra Privacy Policy. Puoi cancellarti in qualsiasi momento."
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "brand_values",
+    "protocols_slider",
+    "routine_tabs",
+    "quiz_banner",
+    "video_feature",
+    "newsletter_banner"
+  ]
+}

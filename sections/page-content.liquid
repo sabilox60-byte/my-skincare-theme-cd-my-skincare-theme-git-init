@@ -1,0 +1,159 @@
+{%- comment -%}
+  page-content.liquid
+  ────────────────────
+  Generic static page renderer. Used by templates/page.json.
+  Renders page.title + page.content inside a narrow container.
+  .rte class styles Shopify's rich text editor output.
+{%- endcomment -%}
+
+<section class="section-page-content"
+         data-section-id="{{ section.id }}">
+  <div class="container container--narrow">
+
+    {%- if page.title != blank -%}
+      <h1 class="page-title">{{ page.title }}</h1>
+    {%- endif -%}
+
+    <div class="page-body rte">
+      {{ page.content }}
+    </div>
+
+  </div>
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-page-content {
+    padding-block: var(--space-2xl);
+  }
+
+  /* ─── Page title ─── */
+  .page-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    line-height: var(--line-height-heading);
+    margin-bottom: var(--space-xl);
+  }
+
+  /* ─── Rich text editor output ─── */
+  .rte p {
+    margin-bottom: var(--space-md);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+    font-size: var(--font-size-base);
+  }
+
+  .rte p:last-child {
+    margin-bottom: 0;
+  }
+
+  .rte h2 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    line-height: var(--line-height-heading);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-md);
+  }
+
+  .rte h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    line-height: var(--line-height-heading);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-md);
+  }
+
+  .rte h4,
+  .rte h5,
+  .rte h6 {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-sm);
+  }
+
+  .rte ul,
+  .rte ol {
+    padding-left: 24px;
+    margin-bottom: var(--space-md);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+  }
+
+  .rte li {
+    margin-bottom: var(--space-xs);
+  }
+
+  .rte a {
+    color: var(--color-text);
+    text-decoration: underline;
+    transition: color var(--transition-fast);
+  }
+
+  .rte a:hover {
+    color: var(--color-text-muted);
+  }
+
+  .rte img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    display: block;
+    margin-block: var(--space-lg);
+  }
+
+  .rte blockquote {
+    border-left: 3px solid var(--color-border-dark);
+    padding-left: var(--space-md);
+    margin-inline: 0;
+    margin-block: var(--space-lg);
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .rte hr {
+    border: none;
+    border-top: var(--border);
+    margin-block: var(--space-xl);
+  }
+
+  .rte table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .rte th,
+  .rte td {
+    padding: 10px 12px;
+    border: var(--border);
+    text-align: left;
+  }
+
+  .rte th {
+    background-color: var(--color-cream);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+  }
+
+  .rte td {
+    color: var(--color-text-muted);
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Page Content",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Page Content"
+    }
+  ]
+}
+{% endschema %}

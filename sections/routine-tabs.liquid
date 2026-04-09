@@ -1,0 +1,427 @@
+{%- comment -%}
+  routine-tabs.liquid
+  ────────────────────
+  2-column layout: sticky aside (intro) + tabbed product grid.
+  7 tab pills driven by section blocks; each panel lazy-loads products
+  via Theme.Tabs.loadTabContent(handle, panelEl) on first activation.
+  slidesPerView behaviour handled by product-card grid (CSS columns).
+{%- endcomment -%}
+
+<section class="section-routine-tabs"
+         data-section-id="{{ section.id }}">
+
+  <div class="container">
+    <div class="routine-tabs__layout">
+
+      {%- comment -%} ── Sticky aside ── {%- endcomment -%}
+      <aside class="routine-tabs__aside">
+        <div class="routine-tabs__aside-inner">
+
+          {%- if section.settings.eyebrow != blank -%}
+            <p class="routine-tabs__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+          {%- endif -%}
+
+          {%- if section.settings.heading != blank -%}
+            <h2 class="routine-tabs__heading">{{ section.settings.heading | escape }}</h2>
+          {%- endif -%}
+
+          {%- if section.settings.body_text != blank -%}
+            <p class="routine-tabs__body">{{ section.settings.body_text | escape }}</p>
+          {%- endif -%}
+
+          {%- if section.settings.cta_label != blank and section.settings.cta_link != blank -%}
+            <a href="{{ section.settings.cta_link }}"
+               class="btn btn-secondary routine-tabs__cta">
+              {{ section.settings.cta_label | escape }}
+            </a>
+          {%- endif -%}
+
+        </div>
+      </aside>
+
+      {%- comment -%} ── Tabs area ── {%- endcomment -%}
+      <div class="routine-tabs__content">
+
+        {%- comment -%} Tab pill nav ── {%- endcomment -%}
+        <div class="routine-tabs__nav"
+             role="tablist"
+             aria-label="{{ section.settings.heading | default: 'Routine steps' | escape }}">
+
+          {%- for block in section.blocks -%}
+            <button class="routine-tabs__pill{% if forloop.first %} is-active{% endif %}"
+                    role="tab"
+                    type="button"
+                    id="tab-{{ section.id }}-{{ forloop.index }}"
+                    aria-controls="panel-{{ section.id }}-{{ forloop.index }}"
+                    aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                    data-collection-handle="{{ block.settings.collection_handle }}"
+                    {{ block.shopify_attributes }}>
+              {{ block.settings.tab_label | escape }}
+            </button>
+          {%- endfor -%}
+
+        </div>
+
+        {%- comment -%} Tab panels ── {%- endcomment -%}
+        <div class="routine-tabs__panels">
+
+          {%- for block in section.blocks -%}
+            <div class="routine-tabs__panel{% if forloop.first %} is-active{% endif %}"
+                 role="tabpanel"
+                 id="panel-{{ section.id }}-{{ forloop.index }}"
+                 aria-labelledby="tab-{{ section.id }}-{{ forloop.index }}"
+                 data-collection="{{ block.settings.collection_handle }}"
+                 data-loaded="false"
+                 {%- unless forloop.first -%}hidden{%- endunless -%}>
+
+              {%- comment -%}
+                First panel: server-render products for SEO + no-JS.
+                Remaining panels: JS populates via Theme.Tabs.loadTabContent().
+              {%- endcomment -%}
+              {%- if forloop.first -%}
+                {%- assign first_collection = collections[block.settings.collection_handle] -%}
+                {%- if first_collection != blank -%}
+                  <div class="routine-tabs__grid">
+                    {%- for product in first_collection.products limit: 8 -%}
+                      {%- render 'product-card', product: product -%}
+                    {%- endfor -%}
+                  </div>
+                {%- else -%}
+                  <div class="routine-tabs__empty">
+                    <p>Nessun prodotto trovato.</p>
+                  </div>
+                {%- endif -%}
+              {%- else -%}
+                {%- comment -%} Skeleton placeholder — replaced by JS ── {%- endcomment -%}
+                <div class="routine-tabs__grid routine-tabs__grid--skeleton" aria-hidden="true">
+                  {%- for i in (1..4) -%}
+                    <div class="routine-tabs__skeleton-card">
+                      <div class="skeleton skeleton--image"></div>
+                      <div class="skeleton skeleton--text" style="width: 80%; margin-top: 12px;"></div>
+                      <div class="skeleton skeleton--text" style="width: 50%; margin-top: 8px;"></div>
+                    </div>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+
+            </div>
+          {%- endfor -%}
+
+        </div>{%- comment -%} /.routine-tabs__panels {%- endcomment -%}
+
+      </div>{%- comment -%} /.routine-tabs__content {%- endcomment -%}
+
+    </div>{%- comment -%} /.routine-tabs__layout {%- endcomment -%}
+  </div>
+
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-routine-tabs {
+    padding-block: var(--space-2xl);
+  }
+
+  /* ─── 2-column layout ─── */
+  .routine-tabs__layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xl);
+  }
+
+  /* ─── Aside ─── */
+  .routine-tabs__aside {
+    flex-shrink: 0;
+  }
+
+  .routine-tabs__aside-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .routine-tabs__eyebrow {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .routine-tabs__heading {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    line-height: var(--line-height-heading);
+  }
+
+  .routine-tabs__body {
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+  }
+
+  .routine-tabs__cta {
+    align-self: flex-start;
+  }
+
+  /* ─── Tab pills nav ─── */
+  .routine-tabs__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-lg);
+  }
+
+  .routine-tabs__pill {
+    padding: 8px var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-bg);
+    color: var(--color-text-muted);
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast),
+      border-color var(--transition-fast);
+  }
+
+  .routine-tabs__pill:hover {
+    border-color: var(--color-text);
+    color: var(--color-text);
+  }
+
+  .routine-tabs__pill.is-active,
+  .routine-tabs__pill[aria-selected="true"] {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    border-color: var(--color-text);
+  }
+
+  /* ─── Tab panels ─── */
+  .routine-tabs__panel {
+    display: block;
+  }
+
+  .routine-tabs__panel[hidden] {
+    display: none;
+  }
+
+  /* ─── Product grid ─── */
+  .routine-tabs__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+
+  /* ─── Empty state ─── */
+  .routine-tabs__empty {
+    padding: var(--space-xl) 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-base);
+  }
+
+  /* ─── Skeleton placeholders ─── */
+  .routine-tabs__skeleton-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .routine-tabs__skeleton-card .skeleton--image {
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-md);
+  }
+
+  .routine-tabs__skeleton-card .skeleton--text {
+    height: 14px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ─── Desktop: side-by-side layout ─── */
+  @media (min-width: 1024px) {
+    .routine-tabs__layout {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: var(--space-2xl);
+    }
+
+    .routine-tabs__aside {
+      width: 30%;
+      min-width: 240px;
+      position: sticky;
+      top: calc(var(--header-height) + var(--space-xl));
+    }
+
+    .routine-tabs__content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .routine-tabs__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .routine-tabs__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var section = document.querySelector('[data-section-id="{{ section.id }}"]');
+    if (!section) return;
+
+    var pills = section.querySelectorAll('.routine-tabs__pill');
+    var panels = section.querySelectorAll('.routine-tabs__panel');
+
+    pills.forEach(function (pill) {
+      pill.addEventListener('click', function () {
+        var targetId = pill.getAttribute('aria-controls');
+        var targetPanel = section.querySelector('#' + targetId);
+        if (!targetPanel) return;
+
+        /* Update pills */
+        pills.forEach(function (p) {
+          p.classList.remove('is-active');
+          p.setAttribute('aria-selected', 'false');
+        });
+        pill.classList.add('is-active');
+        pill.setAttribute('aria-selected', 'true');
+
+        /* Update panels */
+        panels.forEach(function (p) {
+          p.classList.remove('is-active');
+          p.hidden = true;
+        });
+        targetPanel.classList.add('is-active');
+        targetPanel.hidden = false;
+
+        /* Lazy-load products if not yet loaded */
+        var handle = targetPanel.getAttribute('data-collection');
+        var loaded = targetPanel.getAttribute('data-loaded');
+        if (handle && loaded === 'false' && typeof Theme !== 'undefined' && Theme.Tabs) {
+          Theme.Tabs.loadTabContent(handle, targetPanel);
+        }
+      });
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Routine Tabs",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "La tua routine"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Costruisci la routine perfetta per la tua pelle"
+    },
+    {
+      "type": "textarea",
+      "id": "body_text",
+      "label": "Body text",
+      "default": "Ogni step è formulato per lavorare in sinergia con gli altri."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA button label"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA button link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "routine_step",
+      "name": "Routine Step",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tab_label",
+          "label": "Tab label",
+          "default": "Step 1"
+        },
+        {
+          "type": "text",
+          "id": "collection_handle",
+          "label": "Collection handle",
+          "info": "e.g. detergenti-e-struccanti"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Routine Tabs",
+      "blocks": [
+        {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 1 · Detersione",
+            "collection_handle": "detergenti-e-struccanti"
+          }
+        },
+        {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 2 · Esfoliazione",
+            "collection_handle": "esfoliazione"
+          }
+        },
+        {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 3 · Booster",
+            "collection_handle": "booster"
+          }
+        },
+        {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 4 · Contorno occhi",
+            "collection_handle": "contorno-occhi"
+          }
+        },
+        {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 5 · Idratazione",
+            "collection_handle": "creme-viso"
+          }
+        },
+        {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Step 6 · Protezione Solare",
+            "collection_handle": "creme-solari"
+          }
+        },
+        {
+          "type": "routine_step",
+          "settings": {
+            "tab_label": "Trattamenti",
+            "collection_handle": "trattamenti-e-maschere-viso"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

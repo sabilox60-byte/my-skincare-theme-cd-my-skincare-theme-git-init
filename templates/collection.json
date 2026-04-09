@@ -1,0 +1,22 @@
+{
+  "sections": {
+    "collection-header": {
+      "type": "collection-header",
+      "blocks": {},
+      "block_order": [],
+      "settings": {
+        "show_description": false
+      }
+    },
+    "collection-grid": {
+      "type": "collection-grid",
+      "blocks": {},
+      "block_order": [],
+      "settings": {
+        "products_per_page": 16,
+        "columns_desktop": "4"
+      }
+    }
+  },
+  "order": ["collection-header", "collection-grid"]
+}

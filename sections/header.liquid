@@ -1,0 +1,1016 @@
+{%- comment -%}
+  header.liquid
+  ─────────────
+  3-zone sticky header: [Desktop Nav] [Logo] [Utils]
+  Mega menu for Skincare (hardcoded per live store structure).
+  Mobile nav drawer slides in from the left.
+  All interactive JS is handled by Theme.Menu in assets/theme.js.
+  No {% javascript %} block — zero duplication.
+{%- endcomment -%}
+
+<header class="header{% if section.settings.sticky_header %} header--sticky{% endif %}"
+        id="site-header"
+        data-header
+        data-section-id="{{ section.id }}">
+
+  <div class="header__inner container">
+
+    {%- comment -%}══════════════ LEFT: Desktop navigation ══════════════{%- endcomment -%}
+    <nav class="header__nav" aria-label="Navigazione principale">
+      <ul class="header__nav-list" role="list">
+
+        {%- comment -%} Schema-driven nav items {%- endcomment -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'nav_item' -%}
+            <li class="header__nav-item{% if block.settings.has_mega_menu %} has-mega-menu{% endif %}"
+                data-mega-trigger
+                {{ block.shopify_attributes }}>
+
+              {%- if block.settings.has_mega_menu -%}
+                <button class="header__nav-trigger"
+                        data-mega-link
+                        aria-expanded="false"
+                        aria-haspopup="true"
+                        aria-controls="mega-{{ block.id | replace: '-', '' }}">
+                  {{ block.settings.label | escape }}
+                  {%- render 'icon-sprite', icon: 'icon-chevron-down' -%}
+                </button>
+              {%- elsif block.settings.link != blank -%}
+                <a class="header__nav-trigger header__nav-link"
+                   href="{{ block.settings.link }}">
+                  {{ block.settings.label | escape }}
+                </a>
+              {%- else -%}
+                <span class="header__nav-trigger header__nav-link">
+                  {{ block.settings.label | escape }}
+                </span>
+              {%- endif -%}
+
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- comment -%} Fallback static items if no blocks are configured {%- endcomment -%}
+        {%- if section.blocks.size == 0 -%}
+          <li class="header__nav-item has-mega-menu" data-mega-trigger>
+            <button class="header__nav-trigger"
+                    data-mega-link
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-controls="mega-skincare">
+              Skincare
+              {%- render 'icon-sprite', icon: 'icon-chevron-down' -%}
+            </button>
+          </li>
+          <li class="header__nav-item">
+            <a class="header__nav-trigger header__nav-link"
+               href="/collections/protocolli">Protocolli</a>
+          </li>
+          <li class="header__nav-item">
+            <a class="header__nav-trigger header__nav-link"
+               href="/pages/make-up">Make-up</a>
+          </li>
+        {%- endif -%}
+
+      </ul>
+    </nav>
+
+    {%- comment -%}══════════════ CENTER: Logo ══════════════{%- endcomment -%}
+    <a href="{{ routes.root_url }}"
+       class="header__logo"
+       aria-label="{{ shop.name | escape }}">
+      {%- if settings.logo != blank -%}
+        <img src="{{ settings.logo | image_url: width: 280 }}"
+             srcset="{{ settings.logo | image_url: width: 140 }} 140w,
+                     {{ settings.logo | image_url: width: 280 }} 280w"
+             sizes="{{ settings.logo_width | default: 140 }}px"
+             alt="{{ shop.name | escape }}"
+             width="{{ settings.logo_width | default: 140 }}"
+             height="auto"
+             loading="eager"
+             fetchpriority="high">
+      {%- else -%}
+        <span class="header__logo-text">{{ shop.name | escape }}</span>
+      {%- endif -%}
+    </a>
+
+    {%- comment -%}══════════════ RIGHT: Utilities ══════════════{%- endcomment -%}
+    <div class="header__utils">
+
+      {%- comment -%} Search {%- endcomment -%}
+      <button class="header__icon-btn"
+              type="button"
+              data-open-search
+              aria-label="Apri ricerca"
+              aria-controls="search-drawer"
+              aria-expanded="false">
+        {%- render 'icon-sprite', icon: 'icon-search' -%}
+      </button>
+
+      {%- comment -%} Account {%- endcomment -%}
+      <a href="{{ routes.account_url }}"
+         class="header__icon-btn"
+         aria-label="Account">
+        {%- render 'icon-sprite', icon: 'icon-account' -%}
+      </a>
+
+      {%- comment -%} Cart {%- endcomment -%}
+      <button class="header__icon-btn header__cart-btn"
+              type="button"
+              data-open-cart
+              aria-label="Carrello"
+              aria-controls="cart-drawer"
+              aria-expanded="false">
+        {%- render 'icon-sprite', icon: 'icon-cart' -%}
+        <span class="cart-count header__cart-count"
+              data-cart-count
+              aria-live="polite"
+              data-count="{{ cart.item_count }}">
+          {{ cart.item_count }}
+        </span>
+      </button>
+
+      {%- comment -%} Mobile hamburger — hidden on desktop via CSS {%- endcomment -%}
+      <button class="header__icon-btn header__hamburger"
+              type="button"
+              data-hamburger
+              aria-label="Apri menu"
+              aria-expanded="false"
+              aria-controls="mobile-nav">
+        {%- render 'icon-sprite', icon: 'icon-menu' -%}
+      </button>
+
+    </div>{%- comment -%} /.header__utils {%- endcomment -%}
+
+  </div>{%- comment -%} /.header__inner {%- endcomment -%}
+
+  {%- comment -%}
+  ╔══════════════════════════════════════════════════════════╗
+  ║  MEGA MENU — Skincare                                    ║
+  ║  Hardcoded structure matching the live store exactly.    ║
+  ║  Opened/closed by Theme.Menu.initMegaMenu() in theme.js  ║
+  ╚══════════════════════════════════════════════════════════╝
+  {%- endcomment -%}
+  <div class="mega-menu"
+       id="mega-skincare"
+       data-mega-menu
+       role="region"
+       aria-label="Menu Skincare"
+       aria-hidden="true">
+
+    <div class="mega-menu__inner container">
+
+      {%- comment -%} ── Col 1: Highlights ── {%- endcomment -%}
+      <div class="mega-menu__col mega-menu__col--highlights">
+        <p class="mega-menu__col-title">Highlights</p>
+        <ul class="mega-menu__list">
+          <li>
+            <a class="mega-menu__link" href="/collections/tutti-i-prodotti-skincare">
+              Tutti i prodotti
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/products/the-eggstra-secret-box">
+              The Eggstra Secret Box
+              <span class="mega-badge mega-badge--limited">Limited</span>
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/pages/quiz-tipo-pelle">
+              The Skincare Builder
+              <span class="mega-badge mega-badge--science">Science Based</span>
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/pages/linea-pelli-sensibili">
+              Linea pelle sensibile
+              <span class="mega-badge mega-badge--new">New</span>
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/collections/kit-essential">
+              Kit Essential
+              <span class="mega-badge mega-badge--smart">Smart Start</span>
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/products/gift-card-digitale">
+              Gift Card Digitale
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      {%- comment -%} ── Col 2: Step Routine ── {%- endcomment -%}
+      <div class="mega-menu__col mega-menu__col--steps">
+        <p class="mega-menu__col-title">Step Routine</p>
+        <ul class="mega-menu__list step-list">
+          <li>
+            <a class="mega-menu__link" href="/collections/detergenti-e-struccanti">
+              <span class="step-num">1</span>Detergenti e Struccanti
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/collections/esfoliazione">
+              <span class="step-num">2</span>Esfolianti Viso
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/collections/booster">
+              <span class="step-num">3</span>Booster
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/collections/contorno-occhi">
+              <span class="step-num">4</span>Contorno Occhi
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/collections/creme-viso">
+              <span class="step-num">5</span>Creme Viso
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/collections/creme-solari">
+              <span class="step-num">6</span>Solari
+            </a>
+          </li>
+          <li>
+            <a class="mega-menu__link" href="/collections/trattamenti-e-maschere-viso">
+              <span class="step-num">+</span>Trattamenti e Maschere
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      {%- comment -%} ── Col 3: Esigenze (2 sub-columns) ── {%- endcomment -%}
+      <div class="mega-menu__col mega-menu__col--concerns">
+        <p class="mega-menu__col-title">Esigenze</p>
+        <div class="concerns-grid">
+          <ul class="mega-menu__list">
+            <li><a class="mega-menu__link" href="/collections/impurita">Impurità</a></li>
+            <li><a class="mega-menu__link" href="/collections/pori-dilatati">Pori dilatati</a></li>
+            <li><a class="mega-menu__link" href="/collections/punti-neri">Punti Neri</a></li>
+            <li><a class="mega-menu__link" href="/collections/controllo-del-sebo">Controllo del Sebo</a></li>
+            <li><a class="mega-menu__link" href="/collections/cicatrici-da-acne">Cicatrici da acne</a></li>
+            <li><a class="mega-menu__link" href="/collections/prodotti-antiage">Invecchiamento Cutaneo</a></li>
+            <li><a class="mega-menu__link" href="/collections/rughe-e-linee-sottili">Rughe e Linee Sottili</a></li>
+            <li><a class="mega-menu__link" href="/collections/rosacea-e-rossori">Rosacea e Rossori</a></li>
+            <li><a class="mega-menu__link" href="/collections/secchezza-cutanea-e-disidratazione">Secchezza e Disidratazione</a></li>
+          </ul>
+          <ul class="mega-menu__list">
+            <li><a class="mega-menu__link" href="/collections/labbra">Labbra secche</a></li>
+            <li><a class="mega-menu__link" href="/collections/macchie-viso">Macchie Cutanee</a></li>
+            <li><a class="mega-menu__link" href="/collections/macchie-post-acne">Macchie Post-Acne</a></li>
+            <li><a class="mega-menu__link" href="/collections/macchie-brune">Macchie Brune</a></li>
+            <li><a class="mega-menu__link" href="/collections/pelle-spenta">Luminosità Cutanea</a></li>
+            <li><a class="mega-menu__link" href="/collections/idratazione-contorno-occhi">Occhiaie e Borse</a></li>
+            <li><a class="mega-menu__link" href="/collections/creme-solari">Protezione Solare</a></li>
+          </ul>
+        </div>
+      </div>
+
+      {%- comment -%} ── Col 4: Image banner ── {%- endcomment -%}
+      <div class="mega-menu__col mega-menu__col--banner">
+        {%- if section.settings.mega_banner_image != blank -%}
+          <a href="{{ section.settings.mega_banner_link | default: '/collections/tutti-i-prodotti-skincare' }}"
+             class="mega-menu__banner-link">
+            <img src="{{ section.settings.mega_banner_image | image_url: width: 400 }}"
+                 srcset="{{ section.settings.mega_banner_image | image_url: width: 200 }} 200w,
+                         {{ section.settings.mega_banner_image | image_url: width: 400 }} 400w"
+                 sizes="260px"
+                 alt="{{ section.settings.mega_banner_image.alt | escape }}"
+                 width="400"
+                 height="auto"
+                 loading="lazy">
+            <span class="mega-menu__banner-cta">
+              Approfittane
+              {%- render 'icon-sprite', icon: 'icon-arrow-right' -%}
+            </span>
+          </a>
+        {%- endif -%}
+      </div>
+
+    </div>{%- comment -%} /.mega-menu__inner {%- endcomment -%}
+  </div>{%- comment -%} /.mega-menu #mega-skincare {%- endcomment -%}
+
+  {%- comment -%}
+  ╔══════════════════════════════════════════════════════════╗
+  ║  MOBILE NAV DRAWER                                       ║
+  ║  Slides in from the left on mobile.                      ║
+  ║  Opened/closed by Theme.Menu in assets/theme.js          ║
+  ╚══════════════════════════════════════════════════════════╝
+  {%- endcomment -%}
+  <nav class="mobile-nav"
+       id="mobile-nav"
+       aria-hidden="true"
+       aria-label="Navigazione mobile">
+
+    <div class="mobile-nav__header">
+      <a href="{{ routes.root_url }}" class="mobile-nav__logo">
+        {%- if settings.logo != blank -%}
+          <img src="{{ settings.logo | image_url: width: 140 }}"
+               alt="{{ shop.name | escape }}"
+               width="{{ settings.logo_width_mobile | default: 100 }}"
+               height="auto"
+               loading="eager">
+        {%- else -%}
+          {{ shop.name | escape }}
+        {%- endif -%}
+      </a>
+      <button class="mobile-nav__close"
+              type="button"
+              data-mobile-close
+              aria-label="Chiudi menu">
+        {%- render 'icon-sprite', icon: 'icon-close' -%}
+      </button>
+    </div>
+
+    <ul class="mobile-nav__list" role="list">
+
+      {%- comment -%} Skincare — triggers sub-panel {%- endcomment -%}
+      <li class="mobile-nav__item mobile-nav__item--has-sub">
+        <button class="mobile-nav__trigger"
+                type="button"
+                data-mobile-toggle
+                aria-expanded="false"
+                aria-controls="mobile-sub-skincare">
+          Skincare
+          {%- render 'icon-sprite', icon: 'icon-chevron-right' -%}
+        </button>
+        <ul class="mobile-nav__sub" id="mobile-sub-skincare" hidden>
+          <li><a href="/collections/tutti-i-prodotti-skincare">Tutti i prodotti</a></li>
+          <li><a href="/collections/detergenti-e-struccanti">Detergenti e Struccanti</a></li>
+          <li><a href="/collections/esfoliazione">Esfolianti Viso</a></li>
+          <li><a href="/collections/booster">Booster</a></li>
+          <li><a href="/collections/contorno-occhi">Contorno Occhi</a></li>
+          <li><a href="/collections/creme-viso">Creme Viso</a></li>
+          <li><a href="/collections/creme-solari">Solari</a></li>
+          <li><a href="/collections/trattamenti-e-maschere-viso">Trattamenti e Maschere</a></li>
+          <li><a href="/pages/quiz-tipo-pelle">The Skincare Builder</a></li>
+        </ul>
+      </li>
+
+      {%- comment -%} Protocolli {%- endcomment -%}
+      <li class="mobile-nav__item mobile-nav__item--has-sub">
+        <button class="mobile-nav__trigger"
+                type="button"
+                data-mobile-toggle
+                aria-expanded="false"
+                aria-controls="mobile-sub-protocolli">
+          Protocolli Skincare
+          {%- render 'icon-sprite', icon: 'icon-chevron-right' -%}
+        </button>
+        <ul class="mobile-nav__sub" id="mobile-sub-protocolli" hidden>
+          <li><a href="/collections/protocolli">Tutti i protocolli</a></li>
+          <li><a href="/collections/kit-essential">Kit Essential</a></li>
+        </ul>
+      </li>
+
+      <li class="mobile-nav__item">
+        <a class="mobile-nav__trigger" href="/pages/make-up">Make-up</a>
+      </li>
+      <li class="mobile-nav__item">
+        <a class="mobile-nav__trigger" href="/blogs/the-skin-first-edit">The Skin First Edit</a>
+      </li>
+      <li class="mobile-nav__item">
+        <a class="mobile-nav__trigger" href="/pages/academy">Academy</a>
+      </li>
+      <li class="mobile-nav__item">
+        <a class="mobile-nav__trigger" href="/pages/brand-page-overview">Chi siamo</a>
+      </li>
+
+    </ul>
+
+    <div class="mobile-nav__footer">
+      <a href="{{ routes.account_url }}">
+        {%- render 'icon-sprite', icon: 'icon-account' -%}
+        Account
+      </a>
+      <a href="/pages/domande-frequenti">FAQ</a>
+      {%- if settings.social_whatsapp != blank -%}
+        <a href="https://wa.me/{{ settings.social_whatsapp | remove: '+' | remove: ' ' }}"
+           target="_blank" rel="noopener">
+          {%- render 'icon-sprite', icon: 'icon-whatsapp' -%}
+          WhatsApp
+        </a>
+      {%- endif -%}
+    </div>
+
+  </nav>
+
+  {%- comment -%} Mobile overlay — click closes nav, managed by Theme.Menu {%- endcomment -%}
+  <div class="mobile-nav__overlay" data-mobile-overlay aria-hidden="true"></div>
+
+</header>
+
+{%- comment -%} ── Scoped styles ── {%- endcomment -%}
+<style>
+  /* ─── Header shell ─── */
+  .header {
+    background-color: var(--color-bg);
+    border-bottom: var(--border);
+    z-index: calc(var(--z-sticky) + 10);
+    position: relative;
+    transition: box-shadow 0.2s ease, height 0.2s ease;
+  }
+
+  .header--sticky {
+    position: sticky;
+    top: 0;
+  }
+
+  .header--scrolled {
+    box-shadow: 0 2px 16px var(--overlay-light);
+  }
+
+  .header__inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 64px;
+    gap: var(--space-md);
+    transition: height 0.2s ease;
+  }
+
+  .header--scrolled .header__inner {
+    height: 56px;
+  }
+
+  /* ─── Desktop nav (left zone) ─── */
+  .header__nav {
+    display: none;
+  }
+
+  .header__nav-list {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .header__nav-item {
+    position: relative;
+  }
+
+  .header__nav-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    padding-block: var(--space-md);
+    background: none;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--transition-fast);
+  }
+
+  .header__nav-trigger:hover {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .header__nav-trigger svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    transition: transform var(--transition-fast);
+  }
+
+  .header__nav-item.is-open > .header__nav-trigger svg {
+    transform: rotate(180deg);
+  }
+
+  /* ─── Logo (centre zone) ─── */
+  .header__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header__logo img {
+    width: auto;
+    max-width: {{ settings.logo_width | default: 140 }}px;
+    height: auto;
+    display: block;
+  }
+
+  .header__logo-text {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text);
+    white-space: nowrap;
+  }
+
+  /* ─── Utils (right zone) ─── */
+  .header__utils {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-xs);
+  }
+
+  .header__icon-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    transition: background-color var(--transition-fast);
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .header__icon-btn:hover {
+    background-color: var(--color-cream);
+    text-decoration: none;
+  }
+
+  .header__icon-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Cart count badge */
+  .header__cart-count {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    line-height: 16px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header__cart-count[data-count="0"] {
+    display: none;
+  }
+
+  /* Hamburger — visible on mobile only */
+  .header__hamburger {
+    display: flex;
+  }
+
+  /* ─── Mega menu ─── */
+  .mega-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--color-bg);
+    border-top: var(--border);
+    border-bottom: var(--border);
+    box-shadow: 0 8px 32px var(--overlay-light);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: var(--z-dropdown);
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  .mega-menu.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .mega-menu__inner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    padding-block: 32px;
+  }
+
+  .mega-menu__col-title {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-md);
+  }
+
+  .mega-menu__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .mega-menu__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    transition: color var(--transition-fast);
+    line-height: 1.4;
+  }
+
+  .mega-menu__link:hover {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  /* Step routine numbers */
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  /* Skin concerns — 2 sub-columns */
+  .concerns-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px var(--space-md);
+  }
+
+  /* Mega menu inline badges */
+  .mega-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .mega-badge--limited { background-color: var(--color-error);   color: var(--color-bg); }
+  .mega-badge--science { background-color: var(--color-text);    color: var(--color-bg); }
+  .mega-badge--new     { background-color: var(--color-success); color: var(--color-bg); }
+  .mega-badge--smart   { background-color: var(--color-cream);   color: var(--color-text); border: var(--border); }
+
+  /* Mega menu banner column */
+  .mega-menu__col--banner {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .mega-menu__banner-link {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    width: 100%;
+    position: relative;
+    text-decoration: none;
+  }
+
+  .mega-menu__banner-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-slow);
+    flex: 1;
+  }
+
+  .mega-menu__banner-link:hover img {
+    transform: scale(1.04);
+  }
+
+  .mega-menu__banner-cta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    border-top: var(--border);
+    flex-shrink: 0;
+  }
+
+  .mega-menu__banner-cta svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ─── Mobile nav drawer ─── */
+  .mobile-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(360px, 100vw);
+    height: 100dvh;
+    background-color: var(--color-bg);
+    z-index: var(--z-drawer);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .mobile-nav.is-open {
+    transform: translateX(0);
+  }
+
+  .mobile-nav__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--container-padding);
+    border-bottom: var(--border);
+    min-height: 64px;
+    flex-shrink: 0;
+  }
+
+  .mobile-nav__logo {
+    display: flex;
+    align-items: center;
+    color: var(--color-text);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .mobile-nav__logo img {
+    max-width: {{ settings.logo_width_mobile | default: 100 }}px;
+    height: auto;
+  }
+
+  .mobile-nav__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    transition: background-color var(--transition-fast);
+  }
+
+  .mobile-nav__close:hover {
+    background-color: var(--color-cream);
+  }
+
+  .mobile-nav__close svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-nav__list {
+    flex: 1;
+    padding: var(--space-sm) 0;
+  }
+
+  .mobile-nav__item {
+    border-bottom: var(--border);
+  }
+
+  .mobile-nav__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--space-md) var(--container-padding);
+    font-family: var(--font-body);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    text-decoration: none;
+    transition: background-color var(--transition-fast);
+  }
+
+  .mobile-nav__trigger:hover {
+    background-color: var(--color-cream);
+    text-decoration: none;
+  }
+
+  .mobile-nav__trigger svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+    transition: transform var(--transition-fast);
+  }
+
+  .mobile-nav__item--has-sub .mobile-nav__trigger[aria-expanded="true"] svg {
+    transform: rotate(90deg);
+  }
+
+  /* Sub-panel list */
+  .mobile-nav__sub {
+    padding: 0 var(--container-padding) var(--space-md);
+    background-color: var(--color-cream);
+  }
+
+  .mobile-nav__sub[hidden] {
+    display: none;
+  }
+
+  .mobile-nav__sub li {
+    border-bottom: var(--border);
+  }
+
+  .mobile-nav__sub li:last-child {
+    border-bottom: none;
+  }
+
+  .mobile-nav__sub a {
+    display: block;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+  }
+
+  .mobile-nav__sub a:hover {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  /* Footer links row */
+  .mobile-nav__footer {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-lg) var(--container-padding);
+    border-top: var(--border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .mobile-nav__footer a {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+  }
+
+  .mobile-nav__footer a:hover {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .mobile-nav__footer svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Mobile nav overlay */
+  .mobile-nav__overlay {
+    position: fixed;
+    inset: 0;
+    background-color: var(--overlay-mid);
+    z-index: calc(var(--z-drawer) - 1);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .mobile-nav__overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ─── Responsive breakpoints ─── */
+
+  /* Desktop: show nav, hide hamburger */
+  @media (min-width: 1024px) {
+    .header__nav {
+      display: flex;
+    }
+
+    .header__hamburger {
+      display: none;
+    }
+  }
+
+  /* Tablet: compact utils gap */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .header__inner {
+      grid-template-columns: auto 1fr auto;
+    }
+
+    .header__nav {
+      display: none;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "sticky_header",
+      "label": "Sticky header",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Mega menu banner"
+    },
+    {
+      "type": "image_picker",
+      "id": "mega_banner_image",
+      "label": "Mega menu banner image",
+      "info": "Shown in the 4th column of the Skincare mega menu. Recommended: 400×600px portrait."
+    },
+    {
+      "type": "url",
+      "id": "mega_banner_link",
+      "label": "Mega menu banner link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "nav_item",
+      "name": "Nav Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Shop"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "checkbox",
+          "id": "has_mega_menu",
+          "label": "Opens mega menu (Skincare)",
+          "default": false,
+          "info": "When enabled, hovering this item opens the Skincare mega menu."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Header",
+      "blocks": [
+        {
+          "type": "nav_item",
+          "settings": {
+            "label": "Skincare",
+            "has_mega_menu": true
+          }
+        },
+        {
+          "type": "nav_item",
+          "settings": {
+            "label": "Protocolli",
+            "link": "/collections/protocolli",
+            "has_mega_menu": false
+          }
+        },
+        {
+          "type": "nav_item",
+          "settings": {
+            "label": "Make-up",
+            "link": "/pages/make-up",
+            "has_mega_menu": false
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

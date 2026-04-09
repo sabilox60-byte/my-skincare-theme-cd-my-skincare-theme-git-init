@@ -1,0 +1,269 @@
+{%- comment -%}
+  blog-posts.liquid
+  ──────────────────
+  Blog listing page — title + article card grid + pagination.
+  Each card: featured image, date, title, excerpt, "Leggi di più" CTA.
+{%- endcomment -%}
+
+<section class="section-blog-posts"
+         data-section-id="{{ section.id }}">
+  <div class="container">
+
+    <h1 class="blog-posts__heading">{{ blog.title }}</h1>
+
+    {%- paginate blog.articles by section.settings.articles_per_page -%}
+
+      {%- if blog.articles_count > 0 -%}
+
+        <div class="blog-grid">
+          {%- for article in blog.articles -%}
+            <article class="blog-card">
+
+              {%- if article.image != blank -%}
+                <a href="{{ article.url }}" class="blog-card__media" tabindex="-1" aria-hidden="true">
+                  <img src="{{ article.image | image_url: width: 600 }}"
+                       srcset="{{ article.image | image_url: width: 400 }} 400w,
+                               {{ article.image | image_url: width: 600 }} 600w,
+                               {{ article.image | image_url: width: 900 }} 900w"
+                       sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                       alt="{{ article.image.alt | escape }}"
+                       loading="lazy"
+                       width="600"
+                       height="400">
+                </a>
+              {%- endif -%}
+
+              <div class="blog-card__body">
+                <p class="blog-card__meta">
+                  {{ article.published_at | date: '%d %B %Y' }}
+                </p>
+                <h2 class="blog-card__title">
+                  <a href="{{ article.url }}">{{ article.title }}</a>
+                </h2>
+                <p class="blog-card__excerpt">
+                  {{ article.excerpt_or_content | strip_html | truncate: 140 }}
+                </p>
+                <a href="{{ article.url }}" class="blog-card__cta">
+                  Leggi di più
+                  {%- render 'icon-sprite', icon: 'icon-arrow-right' -%}
+                </a>
+              </div>
+
+            </article>
+          {%- endfor -%}
+        </div>
+
+        {%- comment -%} Pagination ── {%- endcomment -%}
+        {%- if paginate.pages > 1 -%}
+          <nav class="pagination" aria-label="Paginazione articoli">
+            <ul class="pagination__list">
+
+              {%- if paginate.previous -%}
+                <li>
+                  <a href="{{ paginate.previous.url }}"
+                     class="pagination__btn pagination__btn--prev"
+                     aria-label="Pagina precedente">
+                    {%- render 'icon-sprite', icon: 'icon-chevron-left' -%}
+                    Precedente
+                  </a>
+                </li>
+              {%- endif -%}
+
+              {%- for part in paginate.parts -%}
+                {%- if part.is_link -%}
+                  <li>
+                    <a href="{{ part.url }}"
+                       class="pagination__btn{% if part.is_current %} is-active{% endif %}"
+                       aria-label="Pagina {{ part.title }}"
+                       {%- if part.is_current %} aria-current="page"{%- endif -%}>
+                      {{ part.title }}
+                    </a>
+                  </li>
+                {%- else -%}
+                  {%- if part.title == paginate.current_page -%}
+                    <li>
+                      <span class="pagination__btn is-active" aria-current="page">
+                        {{ part.title }}
+                      </span>
+                    </li>
+                  {%- else -%}
+                    <li><span class="pagination__ellipsis">&hellip;</span></li>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+
+              {%- if paginate.next -%}
+                <li>
+                  <a href="{{ paginate.next.url }}"
+                     class="pagination__btn pagination__btn--next"
+                     aria-label="Pagina successiva">
+                    Successiva
+                    {%- render 'icon-sprite', icon: 'icon-chevron-right' -%}
+                  </a>
+                </li>
+              {%- endif -%}
+
+            </ul>
+          </nav>
+        {%- endif -%}
+
+      {%- else -%}
+
+        <p class="blog-posts__empty">Nessun articolo pubblicato.</p>
+
+      {%- endif -%}
+
+    {%- endpaginate -%}
+
+  </div>
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-blog-posts {
+    padding-block: var(--space-2xl);
+  }
+
+  /* ─── Heading ─── */
+  .blog-posts__heading {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    line-height: var(--line-height-heading);
+    margin-bottom: var(--space-2xl);
+  }
+
+  /* ─── Blog grid ─── */
+  .blog-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  @media (min-width: 768px) {
+    .blog-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .blog-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* ─── Blog card ─── */
+  .blog-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .blog-card__media {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+  }
+
+  .blog-card__media img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform var(--transition-slow);
+  }
+
+  .blog-card:hover .blog-card__media img {
+    transform: scale(1.03);
+  }
+
+  .blog-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    flex: 1;
+  }
+
+  .blog-card__meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-hint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .blog-card__title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-heading);
+  }
+
+  .blog-card__title a {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .blog-card__title a:hover {
+    color: var(--color-text-muted);
+  }
+
+  .blog-card__excerpt {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+    flex: 1;
+  }
+
+  .blog-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    margin-top: var(--space-xs);
+    transition: gap var(--transition-fast);
+  }
+
+  .blog-card__cta:hover {
+    gap: var(--space-sm);
+  }
+
+  .blog-card__cta svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ─── Empty state ─── */
+  .blog-posts__empty {
+    font-size: var(--font-size-base);
+    color: var(--color-text-hint);
+    text-align: center;
+    padding: var(--space-2xl) 0;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Blog Posts",
+  "settings": [
+    {
+      "type": "range",
+      "id": "articles_per_page",
+      "label": "Articoli per pagina",
+      "min": 6,
+      "max": 24,
+      "step": 3,
+      "default": 12
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blog Posts"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,548 @@
+{%- comment -%}
+  cart-drawer.liquid
+  ──────────────────
+  Slide-in cart panel — fixed right, 400px wide, full viewport height.
+  Static HTML shell only. All cart item content is rendered at runtime
+  by Theme.Cart.refreshDrawer() in assets/theme.js.
+
+  JS integration points:
+    #cart-drawer              — drawer root (Theme.Drawer.open/close)
+    [data-cart-drawer]        — alternate JS selector
+    [data-cart-items]         — JS replaces innerHTML on refresh
+    [data-cart-subtotal]      — JS updates text content
+    [data-cart-count]         — JS updates item count badge in header
+    [data-shipping-fill]      — JS sets width as % of threshold
+    [data-shipping-text]      — JS sets progress message
+    [data-gift-tracker]       — JS toggles [data-unlocked] attribute
+    [data-cart-close]         — closes drawer
+    [data-open-cart]          — opens drawer (used in header icon)
+    [data-free-shipping-threshold]  — read by JS to set threshold value
+{%- endcomment -%}
+
+{%- liquid
+  assign drawer_title        = settings.cart_drawer_title | default: 'Il tuo carrello'
+  assign threshold           = settings.free_shipping_threshold | default: 39
+  assign show_gift           = settings.gift_tracker_enabled | default: true
+  assign gift_text           = settings.gift_tracker_text | default: 'Spendi €39 per sbloccare una Mini Beauty Case in omaggio'
+  assign show_loyalty        = settings.show_loyalty_estimate | default: true
+  assign loyalty_text        = settings.loyalty_estimate_text | default: 'Con questo ordine guadagnerai punti fedeltà'
+-%}
+
+<div id="cart-drawer"
+     class="cart-drawer"
+     role="dialog"
+     aria-modal="true"
+     aria-label="{{ drawer_title | escape }}"
+     aria-expanded="false"
+     aria-hidden="true"
+     data-cart-drawer
+     data-free-shipping-threshold="{{ threshold }}">
+
+  {%- comment -%} ── Header ── {%- endcomment -%}
+  <div class="cart-drawer__header">
+    <h2 class="cart-drawer__title">{{ drawer_title | escape }}</h2>
+    <button class="cart-drawer__close"
+            type="button"
+            data-cart-close
+            aria-label="Chiudi carrello">
+      {%- render 'icon-sprite', icon: 'icon-close' -%}
+    </button>
+  </div>
+
+  {%- comment -%} ── Free shipping progress bar ── {%- endcomment -%}
+  {%- if threshold > 0 -%}
+    <div class="cart-drawer__shipping-bar">
+      <p class="shipping-bar__text" data-shipping-text>
+        Aggiungi <strong>{{ threshold | times: 1 | money_without_trailing_zeros }}</strong> per la spedizione gratuita
+      </p>
+      <div class="shipping-bar__track" role="progressbar"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+           aria-label="Progresso spedizione gratuita">
+        <div class="shipping-bar__fill" data-shipping-fill style="width: 0%"></div>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} ── Gift-with-purchase tracker ── {%- endcomment -%}
+  {%- if show_gift and gift_text != blank -%}
+    <div class="cart-drawer__gift-tracker" data-gift-tracker data-unlocked="false">
+      {%- render 'icon-sprite', icon: 'icon-gift' -%}
+      <span class="gift-tracker__text">{{ gift_text | escape }}</span>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%}
+    ── Cart items list ──
+    JS completely replaces this section's innerHTML on every cart refresh.
+    The template below is a <template> element — cloned by JS per line item.
+  {%- endcomment -%}
+  <div class="cart-drawer__items" data-cart-items aria-live="polite" aria-label="Articoli nel carrello">
+    {%- comment -%} Populated entirely by Theme.Cart._renderCart() {%- endcomment -%}
+    <div class="cart-drawer__empty">
+      {%- render 'icon-sprite', icon: 'icon-cart' -%}
+      <p>Il tuo carrello è vuoto</p>
+      <a href="/collections/all"
+         class="btn btn-primary btn-sm">
+        Inizia lo shopping
+      </a>
+    </div>
+  </div>
+
+  {%- comment -%}
+    Cart item template — cloned by JS for each line item.
+    JS uses this as a reference structure; it does NOT inject from here directly,
+    but the class names must match exactly what Theme.Cart._renderCart() outputs.
+  {%- endcomment -%}
+  <template id="cart-item-template">
+    <div class="cart-item" data-key="">
+      <img class="cart-item__img"
+           src="" alt="" width="80" height="80" loading="lazy">
+      <div class="cart-item__info">
+        <p class="cart-item__title"></p>
+        <p class="cart-item__variant"></p>
+        <p class="cart-item__price"></p>
+        <div class="cart-item__actions">
+          <div class="cart-item__qty"
+               role="group" aria-label="Quantità">
+            <button class="cart-item__qty-btn"
+                    type="button"
+                    data-qty-action="decrease"
+                    aria-label="Diminuisci quantità">
+              {%- render 'icon-sprite', icon: 'icon-minus' -%}
+            </button>
+            <span class="cart-item__qty-num">1</span>
+            <button class="cart-item__qty-btn"
+                    type="button"
+                    data-qty-action="increase"
+                    aria-label="Aumenta quantità">
+              {%- render 'icon-sprite', icon: 'icon-plus' -%}
+            </button>
+          </div>
+          <button class="cart-item__remove"
+                  type="button"
+                  data-qty-action="remove"
+                  aria-label="Rimuovi articolo">
+            {%- render 'icon-sprite', icon: 'icon-trash' -%}
+          </button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  {%- comment -%} ── Footer ── {%- endcomment -%}
+  <div class="cart-drawer__footer">
+
+    {%- comment -%} Loyalty points estimate {%- endcomment -%}
+    {%- if show_loyalty and loyalty_text != blank -%}
+      <div class="cart-drawer__loyalty">
+        {%- render 'icon-sprite', icon: 'icon-star' -%}
+        <p>{{ loyalty_text | escape }}</p>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Subtotal row {%- endcomment -%}
+    <div class="cart-drawer__subtotal">
+      <span class="cart-drawer__subtotal-label">Subtotale</span>
+      <span class="cart-drawer__subtotal-amount" data-cart-subtotal>€0,00</span>
+    </div>
+
+    {%- comment -%} Checkout CTA {%- endcomment -%}
+    <a href="/checkout"
+       class="btn btn-primary btn-full cart-drawer__checkout"
+       data-cart-checkout>
+      Procedi al check-out
+    </a>
+
+    {%- comment -%} Policy note {%- endcomment -%}
+    <p class="cart-drawer__policy-note">
+      Spedizione e tasse calcolate al checkout
+    </p>
+
+  </div>{%- comment -%} /.cart-drawer__footer {%- endcomment -%}
+
+</div>{%- comment -%} /#cart-drawer {%- endcomment -%}
+
+{%- comment -%}
+  ── Scoped styles ──
+  All rules prefixed with .cart-drawer to avoid global side-effects.
+  References only CSS custom properties from theme.css :root — no hex values.
+{%- endcomment -%}
+<style>
+  /* Cart drawer panel */
+  .cart-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(400px, 100vw);
+    height: 100dvh;
+    background-color: var(--color-bg);
+    z-index: var(--z-drawer);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    box-shadow: -4px 0 32px var(--overlay-mid);
+    overflow: hidden;
+  }
+
+  .cart-drawer.is-open {
+    transform: translateX(0);
+  }
+
+  /* Header */
+  .cart-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: var(--border);
+    flex-shrink: 0;
+  }
+
+  .cart-drawer__title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
+  }
+
+  .cart-drawer__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+    flex-shrink: 0;
+  }
+
+  .cart-drawer__close:hover {
+    background-color: var(--color-cream);
+  }
+
+  .cart-drawer__close svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Shipping progress bar */
+  .cart-drawer__shipping-bar {
+    padding: var(--space-sm) var(--space-lg) var(--space-md);
+    border-bottom: var(--border);
+    flex-shrink: 0;
+  }
+
+  .shipping-bar__text {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+    line-height: 1.4;
+  }
+
+  .shipping-bar__text strong {
+    color: var(--color-text);
+  }
+
+  .shipping-bar__track {
+    height: 3px;
+    background-color: var(--color-border);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+  }
+
+  .shipping-bar__fill {
+    height: 100%;
+    background-color: var(--color-success);
+    border-radius: var(--radius-pill);
+    transition: width 0.5s ease;
+    will-change: width;
+  }
+
+  /* Gift tracker */
+  .cart-drawer__gift-tracker {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-lg);
+    background-color: var(--color-cream);
+    border-bottom: var(--border);
+    flex-shrink: 0;
+  }
+
+  .cart-drawer__gift-tracker svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--color-success);
+  }
+
+  .gift-tracker__text {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    line-height: 1.4;
+  }
+
+  .cart-drawer__gift-tracker[data-unlocked="true"] .gift-tracker__text {
+    color: var(--color-success);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .cart-drawer__gift-tracker[data-unlocked="true"] svg {
+    color: var(--color-success);
+  }
+
+  /* Items scroll area */
+  .cart-drawer__items {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 var(--space-lg);
+    scroll-behavior: smooth;
+  }
+
+  .cart-drawer__items::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .cart-drawer__items::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .cart-drawer__items::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-dark);
+    border-radius: var(--radius-pill);
+  }
+
+  /* Empty state */
+  .cart-drawer__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    min-height: 300px;
+    text-align: center;
+    color: var(--color-text-muted);
+    padding: var(--space-2xl) var(--space-md);
+  }
+
+  .cart-drawer__empty svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.25;
+  }
+
+  .cart-drawer__empty p {
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+  }
+
+  /* Individual cart items */
+  .cart-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: var(--space-md);
+    padding-block: var(--space-md);
+    border-bottom: var(--border);
+  }
+
+  .cart-item:last-child {
+    border-bottom: none;
+  }
+
+  .cart-item__img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-cream);
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .cart-item__info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    min-width: 0;
+  }
+
+  .cart-item__title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--color-text);
+  }
+
+  .cart-item__variant {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .cart-item__price {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+  }
+
+  .cart-item__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: var(--space-xs);
+  }
+
+  /* Qty controls */
+  .cart-item__qty {
+    display: flex;
+    align-items: center;
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .cart-item__qty-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    color: var(--color-text);
+    transition: background-color var(--transition-fast);
+  }
+
+  .cart-item__qty-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .cart-item__qty-btn:hover {
+    background-color: var(--color-cream);
+  }
+
+  .cart-item__qty-num {
+    min-width: 28px;
+    text-align: center;
+    font-size: var(--font-size-sm);
+    padding-inline: 2px;
+    border-left: var(--border);
+    border-right: var(--border);
+    line-height: 28px;
+  }
+
+  /* Remove button */
+  .cart-item__remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: var(--color-text-hint);
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .cart-item__remove svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .cart-item__remove:hover {
+    color: var(--color-error);
+    background-color: var(--color-cream);
+  }
+
+  /* Footer */
+  .cart-drawer__footer {
+    padding: var(--space-md) var(--space-lg) var(--space-lg);
+    border-top: var(--border);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  /* Loyalty */
+  .cart-drawer__loyalty {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-cream);
+    border-radius: var(--radius-sm);
+  }
+
+  .cart-drawer__loyalty svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--color-star);
+  }
+
+  .cart-drawer__loyalty p {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    line-height: 1.4;
+  }
+
+  /* Subtotal */
+  .cart-drawer__subtotal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cart-drawer__subtotal-label {
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+  }
+
+  .cart-drawer__subtotal-amount {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+  }
+
+  /* Checkout button */
+  .cart-drawer__checkout {
+    display: flex;
+    width: 100%;
+    padding: 14px;
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    text-decoration: none;
+  }
+
+  .cart-drawer__checkout:hover {
+    background-color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  /* Policy note */
+  .cart-drawer__policy-note {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-hint);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* Mobile: full width on very small screens */
+  @media (max-width: 400px) {
+    .cart-drawer {
+      width: 100vw;
+    }
+  }
+</style>

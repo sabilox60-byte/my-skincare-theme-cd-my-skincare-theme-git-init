@@ -1,0 +1,202 @@
+{%- comment -%}
+  product-reviews.liquid
+  ───────────────────────
+  Customer reviews section. Provides the HTML shell that Judge.me (or similar
+  review app) populates via its Liquid integration.
+
+  Without the app installed, a placeholder message is shown.
+  The star breakdown bars read from metafield reviews.breakdown (optional JSON).
+
+  Metafields used (all optional):
+    reviews.rating             — numeric rating value (shared with rating-stars)
+    reviews.rating_count       — integer count (shared with rating-stars)
+    reviews.breakdown          — JSON array [{stars: 5, percent: 88}, ...]
+{%- endcomment -%}
+
+<section class="section-product-reviews"
+         id="product-reviews"
+         data-section-id="{{ section.id }}">
+  <div class="container">
+
+    <h2 class="product-reviews__heading">
+      {{ section.settings.heading | default: 'Customer Reviews' | escape }}
+    </h2>
+
+    {%- comment -%} ── Summary block ── {%- endcomment -%}
+    <div class="reviews-summary">
+
+      <div class="reviews-summary__score">
+        {%- render 'rating-stars', product: product -%}
+        <p class="reviews-summary__count">
+          {%- assign review_count = product.metafields.reviews.rating_count.value | default: 0 -%}
+          Based on {{ review_count }} review{% if review_count != 1 %}s{% endif %}
+        </p>
+        <a href="#write-review" class="btn btn-secondary reviews-summary__cta">
+          Scrivi una recensione
+        </a>
+      </div>
+
+      {%- comment -%} Star breakdown bars (metafield-driven) ── {%- endcomment -%}
+      {%- assign breakdown = product.metafields.reviews.breakdown.value -%}
+      {%- if breakdown != blank -%}
+        <div class="reviews-summary__bars">
+          {%- for level in breakdown -%}
+            <div class="bar-row">
+              <span class="bar-label">{{ level.stars }}★</span>
+              <div class="bar-track" role="presentation">
+                <div class="bar-fill" style="width: {{ level.percent }}%;"></div>
+              </div>
+              <span class="bar-pct">{{ level.percent }}%</span>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+    </div>{%- comment -%} /.reviews-summary {%- endcomment -%}
+
+    {%- comment -%} ── Review cards (Judge.me populates this) ── {%- endcomment -%}
+    <div class="reviews-list"
+         id="reviews-list"
+         data-product-id="{{ product.id }}">
+
+      {%- comment -%}
+        Judge.me integration:
+        Replace the placeholder <p> below with the Judge.me liquid tag, e.g.:
+          {% render 'judgeme_widgets', widget_type: 'judgeme_reviews',
+             concierge_install: true, product: product %}
+        The `.reviews-list` wrapper provides the margin-top and contains the widget.
+      {%- endcomment -%}
+      <p class="reviews-placeholder">
+        Installa l'app Judge.me per visualizzare le recensioni.
+      </p>
+
+    </div>
+
+    {%- comment -%} Anchor target for "Write a review" links ── {%- endcomment -%}
+    <div id="write-review"></div>
+
+  </div>
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-product-reviews {
+    padding-block: var(--space-2xl);
+    border-top: var(--border);
+  }
+
+  /* ─── Heading ─── */
+  .product-reviews__heading {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    margin-bottom: var(--space-xl);
+    line-height: var(--line-height-heading);
+  }
+
+  /* ─── Summary block ─── */
+  .reviews-summary {
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-xl);
+    border-bottom: var(--border);
+  }
+
+  .reviews-summary__score {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    flex-shrink: 0;
+  }
+
+  .reviews-summary__count {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .reviews-summary__cta {
+    margin-top: var(--space-sm);
+    align-self: flex-start;
+  }
+
+  /* ─── Breakdown bars ─── */
+  .reviews-summary__bars {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 240px;
+    flex: 1;
+    max-width: 360px;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bar-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    min-width: 24px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background-color: var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background-color: var(--color-text);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .bar-pct {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    min-width: 36px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ─── Reviews list ─── */
+  .reviews-list {
+    margin-top: 40px;
+  }
+
+  .reviews-placeholder {
+    font-size: var(--font-size-base);
+    color: var(--color-text-hint);
+    text-align: center;
+    padding: var(--space-2xl) 0;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Product Reviews",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section heading",
+      "default": "Customer Reviews"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Reviews"
+    }
+  ]
+}
+{% endschema %}

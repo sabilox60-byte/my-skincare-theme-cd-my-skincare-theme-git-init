@@ -1,0 +1,249 @@
+{%- comment -%}
+  collection-grid.liquid
+  ───────────────────────
+  Product grid with Shopify native pagination.
+  Renders product-card snippet for each product.
+  Grid columns controlled by schema (3 or 4 desktop).
+  Empty state shown when collection has no products.
+{%- endcomment -%}
+
+<section class="section-collection-grid"
+         data-section-id="{{ section.id }}">
+  <div class="container">
+
+    {%- paginate collection.products by section.settings.products_per_page -%}
+
+      {%- if collection.products.size > 0 -%}
+
+        <div class="product-grid grid-{{ section.settings.columns_desktop }}-col"
+             id="collection-product-grid">
+          {%- for product in collection.products -%}
+            <div class="grid-item">
+              {%- render 'product-card', product: product -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- comment -%} ── Pagination ── {%- endcomment -%}
+        {%- if paginate.pages > 1 -%}
+          <nav class="pagination" aria-label="Paginazione">
+            <ul class="pagination__list">
+
+              {%- if paginate.previous -%}
+                <li>
+                  <a href="{{ paginate.previous.url }}"
+                     class="pagination__btn pagination__btn--prev"
+                     aria-label="Pagina precedente">
+                    {%- render 'icon-sprite', icon: 'icon-chevron-left' -%}
+                    Precedente
+                  </a>
+                </li>
+              {%- endif -%}
+
+              {%- for part in paginate.parts -%}
+                {%- if part.is_link -%}
+                  <li>
+                    <a href="{{ part.url }}"
+                       class="pagination__btn{% if part.is_current %} is-active{% endif %}"
+                       aria-label="Pagina {{ part.title }}"
+                       {%- if part.is_current %} aria-current="page"{%- endif -%}>
+                      {{ part.title }}
+                    </a>
+                  </li>
+                {%- else -%}
+                  {%- if part.title == paginate.current_page -%}
+                    <li>
+                      <span class="pagination__btn is-active" aria-current="page">
+                        {{ part.title }}
+                      </span>
+                    </li>
+                  {%- else -%}
+                    <li><span class="pagination__ellipsis">&hellip;</span></li>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+
+              {%- if paginate.next -%}
+                <li>
+                  <a href="{{ paginate.next.url }}"
+                     class="pagination__btn pagination__btn--next"
+                     aria-label="Pagina successiva">
+                    Successiva
+                    {%- render 'icon-sprite', icon: 'icon-chevron-right' -%}
+                  </a>
+                </li>
+              {%- endif -%}
+
+            </ul>
+          </nav>
+        {%- endif -%}
+
+      {%- else -%}
+
+        {%- comment -%} ── Empty state ── {%- endcomment -%}
+        <div class="collection-empty">
+          <p>Nessun prodotto trovato in questa collezione.</p>
+          <a href="/collections/tutti-i-prodotti-skincare" class="btn btn-primary">
+            Vai a tutti i prodotti
+          </a>
+        </div>
+
+      {%- endif -%}
+
+    {%- endpaginate -%}
+
+  </div>
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-collection-grid {
+    padding-block: var(--space-xl);
+  }
+
+  /* ─── Product grid ─── */
+  .product-grid {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  /* 2 columns on mobile always */
+  .grid-3-col,
+  .grid-4-col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Tablet */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .grid-3-col {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .grid-4-col {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Desktop */
+  @media (min-width: 1024px) {
+    .grid-3-col {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .grid-4-col {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* ─── Pagination ─── */
+  .pagination {
+    margin-top: var(--space-xl);
+    display: flex;
+    justify-content: center;
+  }
+
+  .pagination__list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+  }
+
+  .pagination__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    text-decoration: none;
+    background-color: var(--color-bg);
+    transition:
+      background-color var(--transition-fast),
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+  }
+
+  .pagination__btn:hover:not(.is-active) {
+    background-color: var(--color-cream);
+    border-color: var(--color-border-dark);
+  }
+
+  .pagination__btn.is-active {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    border-color: var(--color-text);
+  }
+
+  .pagination__btn--prev,
+  .pagination__btn--next {
+    width: auto;
+    padding: 0 16px;
+    gap: 6px;
+  }
+
+  .pagination__btn--prev svg,
+  .pagination__btn--next svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .pagination__ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  /* ─── Empty state ─── */
+  .collection-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-lg);
+    padding: var(--space-3xl) 0;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-base);
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Collection Grid",
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Prodotti per pagina",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Colonne desktop",
+      "options": [
+        { "value": "3", "label": "3 colonne" },
+        { "value": "4", "label": "4 colonne" }
+      ],
+      "default": "4"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection Grid"
+    }
+  ]
+}
+{% endschema %}

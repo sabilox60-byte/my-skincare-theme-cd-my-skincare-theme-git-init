@@ -1,0 +1,151 @@
+{%- comment -%}
+  article-content.liquid
+  ───────────────────────
+  Single blog article page. Renders breadcrumb, hero image, article metadata,
+  and article body (via .rte — styles shared with page-content.liquid).
+{%- endcomment -%}
+
+<section class="section-article-content"
+         data-section-id="{{ section.id }}">
+  <div class="container container--narrow">
+
+    {%- comment -%} ── Breadcrumb ── {%- endcomment -%}
+    <nav class="breadcrumb" aria-label="Percorso di navigazione">
+      <ol class="breadcrumb__list">
+        <li><a href="/">Home</a></li>
+        <li class="breadcrumb__sep" aria-hidden="true">›</li>
+        <li><a href="{{ blog.url }}">{{ blog.title }}</a></li>
+        <li class="breadcrumb__sep" aria-hidden="true">›</li>
+        <li aria-current="page">{{ article.title }}</li>
+      </ol>
+    </nav>
+
+    {%- comment -%} ── Article header ── {%- endcomment -%}
+    <header class="article-header">
+      <p class="article-meta">{{ article.published_at | date: '%d %B %Y' }}</p>
+      <h1 class="article-title">{{ article.title }}</h1>
+      {%- if article.author != blank -%}
+        <p class="article-author">Di {{ article.author }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- comment -%} ── Hero image ── {%- endcomment -%}
+    {%- if article.image != blank -%}
+      <div class="article-hero-image">
+        <img src="{{ article.image | image_url: width: 1200 }}"
+             srcset="{{ article.image | image_url: width: 800 }} 800w,
+                     {{ article.image | image_url: width: 1200 }} 1200w"
+             sizes="(min-width: 1024px) 800px, 100vw"
+             alt="{{ article.image.alt | escape }}"
+             loading="eager"
+             width="1200"
+             height="600">
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} ── Article body ── {%- endcomment -%}
+    <div class="article-body rte">
+      {{ article.content }}
+    </div>
+
+    {%- comment -%} ── Back to blog ── {%- endcomment -%}
+    <div class="article-back">
+      <a href="{{ blog.url }}" class="article-back__link">
+        {%- render 'icon-sprite', icon: 'icon-chevron-left' -%}
+        Torna a {{ blog.title }}
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-article-content {
+    padding-block: var(--space-2xl);
+  }
+
+  /* ─── Article header ─── */
+  .article-header {
+    margin-bottom: var(--space-xl);
+  }
+
+  .article-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-hint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-sm);
+  }
+
+  .article-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    line-height: var(--line-height-heading);
+    margin-bottom: var(--space-sm);
+  }
+
+  .article-author {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* ─── Hero image ─── */
+  .article-hero-image {
+    margin-bottom: var(--space-xl);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .article-hero-image img {
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  /* ─── Article body (rte styles shared via page-content.liquid) ─── */
+  .article-body {
+    margin-bottom: var(--space-2xl);
+  }
+
+  /* ─── Back link ─── */
+  .article-back {
+    padding-top: var(--space-xl);
+    border-top: var(--border);
+  }
+
+  .article-back__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .article-back__link:hover {
+    color: var(--color-text);
+  }
+
+  .article-back__link svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Article Content",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Article Content"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,385 @@
+{%- comment -%}
+  product-ingredients.liquid
+  ───────────────────────────
+  Below-fold PDP section containing:
+    A) Routine step bar (metafield: skincare.routine_step)
+    B) Description accordion (product.description)
+    C) How to use accordion (schema richtext)
+    D) Key ingredients carousel (metafield: skincare.key_ingredients JSON array)
+    E) Full INCI list accordion (metafield: skincare.inci_list)
+
+  Metafields required:
+    skincare.routine_step      — integer 1–7
+    skincare.key_ingredients   — JSON array [{name, benefit_description, benefit_label}]
+    skincare.inci_list         — single_line_text or multi_line_text
+{%- endcomment -%}
+
+{%- assign routine_step = product.metafields.skincare.routine_step.value -%}
+
+<section class="section-product-ingredients"
+         data-section-id="{{ section.id }}">
+
+  {%- comment -%} ── A) Routine step bar ── {%- endcomment -%}
+  <div class="routine-step-bar">
+    <div class="container">
+      {%- assign steps       = "1,2,3,4,5,6,+" | split: "," -%}
+      {%- assign step_labels = "Detersione,Esfoliazione,Booster,Contorno Occhi,Idratazione,Protezione Solare,Trattamenti" | split: "," -%}
+      <ul class="step-bar__list" role="list">
+        {%- for step in steps -%}
+          {%- assign is_active = false -%}
+          {%- if routine_step != blank -%}
+            {%- assign step_num = forloop.index -%}
+            {%- if step == '+' -%}
+              {%- if routine_step == 7 -%}{%- assign is_active = true -%}{%- endif -%}
+            {%- else -%}
+              {%- assign step_int = step | plus: 0 -%}
+              {%- if routine_step == step_int -%}{%- assign is_active = true -%}{%- endif -%}
+            {%- endif -%}
+          {%- endif -%}
+          <li class="step-bar__item{% if is_active %} is-active{% endif %}">
+            <span class="step-bar__num">{{ step }}</span>
+            <span class="step-bar__label">{{ step_labels[forloop.index0] }}</span>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+
+  <div class="container product-ingredients__content">
+
+    {%- comment -%} ── B) Description accordion ── {%- endcomment -%}
+    <details class="accordion" open>
+      <summary class="accordion__trigger">
+        <span>Descrizione</span>
+        {%- render 'icon-sprite', icon: 'icon-chevron-down' -%}
+      </summary>
+      <div class="accordion__body">
+        {{ product.description }}
+      </div>
+    </details>
+
+    {%- comment -%} ── C) How to use accordion ── {%- endcomment -%}
+    {%- if section.settings.how_to_use != blank -%}
+      <details class="accordion">
+        <summary class="accordion__trigger">
+          <span>Come usarlo</span>
+          {%- render 'icon-sprite', icon: 'icon-chevron-down' -%}
+        </summary>
+        <div class="accordion__body">
+          {{ section.settings.how_to_use }}
+        </div>
+      </details>
+    {%- endif -%}
+
+    {%- comment -%} ── D) Key Ingredients carousel ── {%- endcomment -%}
+    {%- assign key_ingredients = product.metafields.skincare.key_ingredients.value -%}
+    {%- if key_ingredients != blank -%}
+      <div class="key-ingredients">
+        <h2 class="key-ingredients__heading">Key Ingredients</h2>
+        <div class="swiper ingredients-swiper" data-ingredients-slider>
+          <div class="swiper-wrapper">
+            {%- for ingredient in key_ingredients -%}
+              <div class="swiper-slide ingredient-card">
+                {%- if ingredient.name != blank -%}
+                  <h3 class="ingredient-card__name">{{ ingredient.name }}</h3>
+                {%- endif -%}
+                {%- if ingredient.benefit_description != blank -%}
+                  <p class="ingredient-card__benefit">{{ ingredient.benefit_description }}</p>
+                {%- endif -%}
+                {%- if ingredient.benefit_label != blank -%}
+                  <table class="ingredient-card__table">
+                    <tbody>
+                      <tr>
+                        <th>Beneficio</th>
+                        <td>{{ ingredient.benefit_label }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                {%- endif -%}
+              </div>
+            {%- endfor -%}
+          </div>
+          <div class="swiper-pagination ingredients-pagination"
+               aria-label="Navigazione ingredienti"></div>
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} ── E) Full INCI accordion ── {%- endcomment -%}
+    {%- if product.metafields.skincare.inci_list != blank -%}
+      <details class="accordion">
+        <summary class="accordion__trigger">
+          <span>Ingredienti</span>
+          {%- render 'icon-sprite', icon: 'icon-chevron-down' -%}
+        </summary>
+        <div class="accordion__body accordion__body--inci">
+          <p class="inci-list">{{ product.metafields.skincare.inci_list.value }}</p>
+          <p class="inci-disclaimer">L'elenco degli ingredienti può subire degli aggiornamenti, vi invitiamo a far riferimento alla lista ingredienti presente sulla confezione del prodotto.</p>
+        </div>
+      </details>
+    {%- endif -%}
+
+  </div>{%- comment -%} /.container {%- endcomment -%}
+
+</section>
+
+<style>
+  /* ─── Routine step bar ─── */
+  .routine-step-bar {
+    background-color: var(--color-cream);
+    border-top: var(--border);
+    border-bottom: var(--border);
+    padding: 16px 0;
+    overflow: hidden;
+  }
+
+  .step-bar__list {
+    display: flex;
+    gap: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .step-bar__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .step-bar__item {
+    flex: 1;
+    min-width: 60px;
+    text-align: center;
+    padding: 8px 4px;
+    border-right: var(--border);
+  }
+
+  .step-bar__item:last-child {
+    border-right: none;
+  }
+
+  .step-bar__num {
+    display: block;
+    width: 28px;
+    height: 28px;
+    margin: 0 auto 4px;
+    line-height: 28px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    border-radius: 50%;
+    color: var(--color-text-muted);
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast);
+  }
+
+  .step-bar__item.is-active .step-bar__num {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+  }
+
+  .step-bar__label {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .step-bar__item.is-active .step-bar__label {
+    color: var(--color-text);
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* ─── Content area ─── */
+  .product-ingredients__content {
+    padding-block: var(--space-xl);
+  }
+
+  /* ─── Accordions ─── */
+  .accordion {
+    border-bottom: var(--border);
+  }
+
+  .accordion:first-child {
+    border-top: var(--border);
+  }
+
+  /* Remove default summary marker */
+  .accordion__trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    cursor: pointer;
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    list-style: none;
+    user-select: none;
+  }
+
+  .accordion__trigger::-webkit-details-marker {
+    display: none;
+  }
+
+  .accordion__trigger svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    transition: transform var(--transition-base);
+  }
+
+  details[open] > .accordion__trigger svg {
+    transform: rotate(180deg);
+  }
+
+  .accordion__body {
+    padding: 0 0 var(--space-lg);
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+  }
+
+  .accordion__body p,
+  .accordion__body ul,
+  .accordion__body ol {
+    margin-bottom: var(--space-sm);
+  }
+
+  .accordion__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ─── Key Ingredients ─── */
+  .key-ingredients {
+    padding-block: var(--space-xl);
+  }
+
+  .key-ingredients__heading {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    margin-bottom: var(--space-lg);
+  }
+
+  .ingredients-swiper {
+    overflow: hidden;
+  }
+
+  .ingredient-card {
+    background-color: var(--color-cream);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    height: auto;
+  }
+
+  .ingredient-card__name {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+  }
+
+  .ingredient-card__benefit {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+    flex: 1;
+  }
+
+  .ingredient-card__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+    margin-top: var(--space-sm);
+    border-top: var(--border);
+    padding-top: var(--space-sm);
+  }
+
+  .ingredient-card__table th,
+  .ingredient-card__table td {
+    padding: 6px 0;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .ingredient-card__table th {
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-medium);
+    width: 40%;
+  }
+
+  .ingredient-card__table td {
+    color: var(--color-text);
+  }
+
+  /* Ingredient slider pagination */
+  .ingredients-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-md);
+  }
+
+  .ingredients-pagination .swiper-pagination-bullet {
+    background-color: var(--color-border-dark);
+    opacity: 1;
+  }
+
+  .ingredients-pagination .swiper-pagination-bullet-active {
+    background-color: var(--color-text);
+  }
+
+  /* ─── INCI ─── */
+  .inci-list {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    line-height: 1.8;
+  }
+
+  .inci-disclaimer {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-hint);
+    line-height: var(--line-height-base);
+    margin-top: var(--space-md);
+    font-style: italic;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var slider = document.querySelector('[data-ingredients-slider]');
+    if (!slider) return;
+    if (typeof Theme !== 'undefined' && Theme.Slider) {
+      Theme.Slider.initIngredientsSlider();
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Product Ingredients",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "how_to_use",
+      "label": "How to use",
+      "info": "Shown in the 'Come usarlo' accordion. Leave blank to hide the accordion."
+    },
+    {
+      "type": "richtext",
+      "id": "doctor_tip",
+      "label": "Doctor tip",
+      "info": "Optional tip from a dermatologist or cosmologist."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Ingredients"
+    }
+  ]
+}
+{% endschema %}

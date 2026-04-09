@@ -1,0 +1,74 @@
+{%- comment -%}
+  badge.liquid
+  ─────────────
+  Renders a badge pill on a product card image.
+  Parameters:
+    product — Shopify product object (required)
+  Tag detection (case-insensitive): limited, best-seller, new, science-based, smart-start.
+  Priority: limited > best-seller > new > science-based > smart-start.
+  Positioned absolute inside .card-media (which must be position: relative).
+{%- endcomment -%}
+
+{%- assign tags = product.tags | join: ',' | downcase -%}
+
+{%- if tags contains 'limited' -%}
+  <span class="badge badge--limited">Limited</span>
+{%- elsif tags contains 'best-seller' -%}
+  <span class="badge badge--best-seller">Best Seller</span>
+{%- elsif tags contains 'new' -%}
+  <span class="badge badge--new">New</span>
+{%- elsif tags contains 'science-based' -%}
+  <span class="badge badge--science">Science Based</span>
+{%- elsif tags contains 'smart-start' -%}
+  <span class="badge badge--smart">Smart Start</span>
+{%- endif -%}
+
+<style>
+  /* ─── Base badge ─── */
+  .badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* ─── Variants ─── */
+  /* Deep purple — limited edition */
+  .badge--limited {
+    background-color: #2D1B69;
+    color: #ffffff;
+  }
+
+  /* Black — best seller */
+  .badge--best-seller {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+  }
+
+  /* Green — new */
+  .badge--new {
+    background-color: var(--color-success);
+    color: #ffffff;
+  }
+
+  /* Dark blue — science based */
+  .badge--science {
+    background-color: #1A5276;
+    color: #ffffff;
+  }
+
+  /* Brown — smart start */
+  .badge--smart {
+    background-color: #784212;
+    color: #ffffff;
+  }
+</style>

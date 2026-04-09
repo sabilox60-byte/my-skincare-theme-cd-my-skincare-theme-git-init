@@ -1,0 +1,297 @@
+{%- comment -%}
+  brand-values.liquid
+  ────────────────────
+  Trust strip with optional intro text, 3-column icon+label grid, and CTA.
+  Live store: "Formulati per un'elevata efficacia" / "Evolvono insieme alla
+  ricerca scientifica." / "Approvati dalla community."
+{%- endcomment -%}
+
+<section class="section-brand-values"
+         data-section-id="{{ section.id }}">
+
+  <div class="container">
+
+    {%- comment -%} ── Optional intro block ── {%- endcomment -%}
+    {%- if section.settings.heading != blank or section.settings.eyebrow != blank -%}
+      <div class="brand-values__intro">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="brand-values__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+        <h2 class="brand-values__heading">{{ section.settings.heading | escape }}</h2>
+        {%- if section.settings.subheading != blank -%}
+          <p class="brand-values__subheading">{{ section.settings.subheading | escape }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} ── 3-col icon grid ── {%- endcomment -%}
+    {%- if section.blocks.size > 0 -%}
+      <div class="brand-values__grid">
+        {%- for block in section.blocks -%}
+          <div class="brand-values__item" {{ block.shopify_attributes }}>
+
+            <div class="brand-values__icon" aria-hidden="true">
+              {%- if block.settings.icon_image != blank -%}
+                <img src="{{ block.settings.icon_image | image_url: width: 100 }}"
+                     alt=""
+                     width="48"
+                     height="48"
+                     loading="lazy">
+              {%- else -%}
+                {%- comment -%} Default inline SVG icons if no image uploaded {%- endcomment -%}
+                {%- case forloop.index -%}
+                  {%- when 1 -%}
+                    {%- comment -%} Test tube / efficacy {%- endcomment -%}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                      <path d="M14.5 2L9 8.5v9a4 4 0 008 0V8.5L14.5 2z"/>
+                      <path d="M9 13h6"/>
+                    </svg>
+                  {%- when 2 -%}
+                    {%- comment -%} Flask / science {%- endcomment -%}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                      <path d="M9 3h6M10 3v7L4 19h16L14 10V3"/>
+                      <path d="M6 18h12"/>
+                    </svg>
+                  {%- when 3 -%}
+                    {%- comment -%} Community / users {%- endcomment -%}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                      <circle cx="8"  cy="8"  r="3"/>
+                      <circle cx="16" cy="8"  r="3"/>
+                      <path d="M1 20c0-3.3 3.1-6 7-6"/>
+                      <path d="M23 20c0-3.3-3.1-6-7-6"/>
+                      <path d="M8 14c0-3.3 1.8-6 4-6s4 2.7 4 6"/>
+                    </svg>
+                  {%- else -%}
+                    {%- comment -%} Generic check for extra blocks {%- endcomment -%}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="9 12 11 14 15 10"/>
+                    </svg>
+                {%- endcase -%}
+              {%- endif -%}
+            </div>
+
+            {%- if block.settings.label != blank -%}
+              <p class="brand-values__label">{{ block.settings.label | escape }}</p>
+            {%- endif -%}
+
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} ── CTA ── {%- endcomment -%}
+    {%- if section.settings.cta_label != blank -%}
+      <div class="brand-values__cta">
+        <a href="{{ section.settings.cta_link | default: '/pages/brand-page-overview' }}"
+           class="btn btn-secondary">
+          {{ section.settings.cta_label | escape }}
+        </a>
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<style>
+  /* ─── Section shell ─── */
+  .section-brand-values {
+    background-color: var(--color-cream);
+    border-top: var(--border);
+    border-bottom: var(--border);
+    padding-block: var(--space-2xl);
+  }
+
+  /* ─── Intro block ─── */
+  .brand-values__intro {
+    text-align: center;
+    max-width: 600px;
+    margin-inline: auto;
+    margin-bottom: var(--space-2xl);
+  }
+
+  .brand-values__eyebrow {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+  }
+
+  .brand-values__heading {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    margin-bottom: var(--space-md);
+    line-height: var(--line-height-heading);
+  }
+
+  .brand-values__subheading {
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+  }
+
+  /* ─── Icon grid ─── */
+  .brand-values__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .brand-values__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-lg) 0;
+    border-bottom: var(--border);
+  }
+
+  .brand-values__item:last-child {
+    border-bottom: none;
+  }
+
+  .brand-values__icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text);
+  }
+
+  .brand-values__icon img,
+  .brand-values__icon svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .brand-values__label {
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    line-height: var(--line-height-base);
+  }
+
+  /* ─── CTA ─── */
+  .brand-values__cta {
+    text-align: center;
+    margin-top: var(--space-xl);
+  }
+
+  /* ─── Desktop: 3-column, centred items ─── */
+  @media (min-width: 768px) {
+    .brand-values__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .brand-values__item {
+      flex-direction: column;
+      justify-content: flex-start;
+      text-align: center;
+      gap: var(--space-md);
+      padding: var(--space-xl) var(--space-lg);
+      border-bottom: none;
+      border-right: var(--border);
+    }
+
+    .brand-values__item:last-child {
+      border-right: none;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Brand Values",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "Skin First"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Science meets your skin"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Siamo un brand e una community fondati sulla scienza della pelle."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA button label",
+      "default": "Vieni a conoscerci meglio"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA button link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "value_item",
+      "name": "Value",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "Icon image",
+          "info": "48×48px SVG or PNG with transparent background. If blank, a default icon is used."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Formulati per un'elevata efficacia."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Brand Values",
+      "blocks": [
+        {
+          "type": "value_item",
+          "settings": {
+            "label": "Formulati per un'elevata efficacia."
+          }
+        },
+        {
+          "type": "value_item",
+          "settings": {
+            "label": "Evolvono insieme alla ricerca scientifica."
+          }
+        },
+        {
+          "type": "value_item",
+          "settings": {
+            "label": "Approvati dalla community."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "page-content",
+      "blocks": {},
+      "block_order": [],
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}

@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "blog": {
+      "type": "blog-posts",
+      "blocks": {},
+      "block_order": [],
+      "settings": {
+        "articles_per_page": 12
+      }
+    }
+  },
+  "order": ["blog"]
+}

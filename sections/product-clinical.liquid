@@ -1,0 +1,194 @@
+{%- comment -%}
+  product-clinical.liquid
+  ────────────────────────
+  Clinical results stats section on the PDP.
+  Data source priority:
+    1. product.metafields.clinical.results — JSON array [{percentage, label}]
+    2. Schema blocks (type: stat) — manual fallback for editor-configured stats
+  Section is hidden entirely if neither source has content.
+
+  Metafield required:
+    clinical.results — JSON array [{percentage: "100%", label: "Pelle percepita..."}]
+{%- endcomment -%}
+
+{%- assign clinical = product.metafields.clinical.results.value -%}
+{%- assign has_content = false -%}
+{%- if clinical != blank or section.blocks.size > 0 -%}
+  {%- assign has_content = true -%}
+{%- endif -%}
+
+{%- if has_content -%}
+  <section class="section-product-clinical"
+           data-section-id="{{ section.id }}">
+    <div class="container">
+
+      {%- if section.settings.heading != blank -%}
+        <h2 class="product-clinical__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+
+      <div class="clinical-grid">
+
+        {%- if clinical != blank -%}
+          {%- comment -%} Metafield data takes priority {%- endcomment -%}
+          {%- for stat in clinical -%}
+            <div class="clinical-stat">
+              <span class="clinical-stat__value">{{ stat.percentage }}</span>
+              <p class="clinical-stat__label">{{ stat.label }}</p>
+            </div>
+          {%- endfor -%}
+
+        {%- else -%}
+          {%- comment -%} Schema block fallback {%- endcomment -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'stat' -%}
+              <div class="clinical-stat" {{ block.shopify_attributes }}>
+                <span class="clinical-stat__value">{{ block.settings.percentage | escape }}</span>
+                <p class="clinical-stat__label">{{ block.settings.label | escape }}</p>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+
+        {%- endif -%}
+
+      </div>
+
+      {%- if section.settings.disclaimer != blank -%}
+        <p class="clinical-disclaimer">{{ section.settings.disclaimer | escape }}</p>
+      {%- endif -%}
+
+    </div>
+  </section>
+{%- endif -%}
+
+<style>
+  /* ─── Section shell ─── */
+  .section-product-clinical {
+    background-color: var(--color-cream);
+    border-top: var(--border);
+    border-bottom: var(--border);
+    padding-block: var(--space-2xl);
+  }
+
+  /* ─── Heading ─── */
+  .product-clinical__heading {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    margin-bottom: var(--space-2xl);
+    line-height: var(--line-height-heading);
+  }
+
+  /* ─── Stats grid ─── */
+  .clinical-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+  }
+
+  /* ─── Individual stat ─── */
+  .clinical-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .clinical-stat__value {
+    display: block;
+    font-size: clamp(48px, 8vw, 80px);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    line-height: 1;
+  }
+
+  .clinical-stat__label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+    max-width: 280px;
+  }
+
+  /* ─── Disclaimer ─── */
+  .clinical-disclaimer {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-hint);
+    line-height: var(--line-height-base);
+    margin-top: var(--space-xl);
+    font-style: italic;
+  }
+
+  /* ─── Desktop: auto-fit columns ─── */
+  @media (min-width: 768px) {
+    .clinical-grid {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-xl);
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Product Clinical",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section heading",
+      "default": "I nostri risultati"
+    },
+    {
+      "type": "textarea",
+      "id": "disclaimer",
+      "label": "Disclaimer text",
+      "info": "Small print shown below the stats (e.g. *Test condotto su 30 volontari)."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Stat",
+      "settings": [
+        {
+          "type": "text",
+          "id": "percentage",
+          "label": "Percentage",
+          "default": "100%"
+        },
+        {
+          "type": "textarea",
+          "id": "label",
+          "label": "Description",
+          "default": "Pelle percepita come ben detersa e idratata dopo l'utilizzo.*"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Clinical",
+      "blocks": [
+        {
+          "type": "stat",
+          "settings": {
+            "percentage": "100%",
+            "label": "Pelle percepita come ben detersa e idratata dopo l'utilizzo.*"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "percentage": "90%",
+            "label": "Pelle percepita come confortevole e senza tensione dopo la detersione.*"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "percentage": "90%",
+            "label": "Delicatezza della detersione confermata dai volontari dopo l'utilizzo.*"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

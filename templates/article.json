@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "article": {
+      "type": "article-content",
+      "blocks": {},
+      "block_order": [],
+      "settings": {}
+    }
+  },
+  "order": ["article"]
+}
